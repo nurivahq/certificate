@@ -17,9 +17,7 @@
   --text: #263c34;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
@@ -46,6 +44,7 @@ body {
 .toolbar input,
 .toolbar button {
   max-width: 100%;
+  min-width: 0;
   padding: 10px 12px;
   border: 1px solid #d1ddd5;
   border-radius: 7px;
@@ -59,9 +58,7 @@ body {
   border: 0;
 }
 
-.toolbar button:hover {
-  background: var(--green-light);
-}
+.toolbar button:hover { background: var(--green-light); }
 
 .upload-label {
   font-size: 13px;
@@ -155,6 +152,7 @@ h1 {
   border-bottom: 1px solid var(--gold);
   display: inline-block;
   padding: 0 10px 8px;
+  max-width: 100%;
 }
 
 .award-text {
@@ -177,6 +175,7 @@ h1 {
   border: 1px solid var(--gold);
   background: white;
   border-radius: 8px;
+  min-width: 0;
 }
 
 .level {
@@ -267,10 +266,24 @@ h1 {
   color: var(--green);
 }
 
+/* Public certificate view: hide every editing control */
+body.public-view {
+  padding: 16px;
+  background: #edf2ee;
+}
+
+body.public-view .toolbar {
+  display: none !important;
+}
+
+body.public-view .certificate {
+  width: min(100%, 1120px);
+  margin: auto;
+}
+
+/* Mobile */
 @media (max-width: 600px) {
-  body {
-    padding: 12px 8px;
-  }
+  body { padding: 12px 8px; }
 
   .certificate {
     padding: 24px 18px;
@@ -283,41 +296,21 @@ h1 {
     gap: 7px;
   }
 
-  .logo {
-    width: 62px;
-    height: 62px;
-  }
+  .logo { width: 62px; height: 62px; }
 
-  .brand-name {
-    letter-spacing: 1px;
-  }
+  .brand-name { letter-spacing: 1px; }
 
-  .eyebrow {
-    letter-spacing: 2px;
-    font-size: 11px;
-  }
+  .eyebrow { letter-spacing: 2px; font-size: 11px; }
 
-  .intro,
-  .award-text {
-    font-size: 14px;
-  }
+  .intro, .award-text { font-size: 14px; }
 
-  .scores {
-    gap: 6px;
-  }
+  .scores { gap: 6px; }
 
-  .score {
-    padding: 13px 4px;
-  }
+  .score { padding: 13px 4px; }
 
-  .level {
-    font-size: 11px;
-    letter-spacing: 0;
-  }
+  .level { font-size: 11px; letter-spacing: 0; }
 
-  .percentage {
-    font-size: 11px;
-  }
+  .percentage { font-size: 11px; }
 
   .bottom {
     grid-template-columns: 1fr 1fr;
@@ -330,16 +323,20 @@ h1 {
     justify-self: center;
   }
 
-  .signature {
-    grid-row: 2;
-  }
+  .signature { grid-row: 2; }
+}
+
+@media (max-width: 360px) {
+  .certificate { padding: 22px 13px; }
+  .scores { gap: 4px; }
+  .score { padding: 10px 2px; }
+  .level { font-size: 10px; }
+  .points { font-size: 19px; }
+  .percentage { font-size: 10px; }
 }
 
 @media print {
-  @page {
-    size: A4 landscape;
-    margin: 8mm;
-  }
+  @page { size: A4 landscape; margin: 8mm; }
 
   body {
     padding: 0;
@@ -348,9 +345,7 @@ h1 {
     print-color-adjust: exact;
   }
 
-  .toolbar {
-    display: none !important;
-  }
+  .toolbar { display: none !important; }
 
   .certificate {
     width: 100%;
@@ -363,25 +358,18 @@ h1 {
     break-inside: avoid;
   }
 
-  .student-photo {
-    width: 95px;
-    height: 95px;
-  }
+  .student-photo { width: 95px; height: 95px; }
 
-  .scores {
-    margin: 16px auto;
-  }
+  .scores { margin: 16px auto; }
 
-  .bottom {
-    margin-top: 20px;
-  }
+  .bottom { margin-top: 20px; }
 }
 </style>
 </head>
 
 <body>
 
-<div class="toolbar">
+<div class="toolbar" id="editorToolbar">
   <input id="nameInput" type="text" value="Student Name"
          aria-label="Student name" placeholder="Student name">
 
@@ -398,14 +386,15 @@ h1 {
   </label>
 
   <button type="button" id="qrButton">Generate QR</button>
+  <button type="button" id="saveButton">Save Certificate Record</button>
   <button type="button" onclick="window.print()">Print / Save PDF</button>
 
   <div class="status" id="status" role="status">
-    Edit the student details, then generate the QR code.
+    Edit the student details, then save the record.
   </div>
 </div>
 
-<main class="certificate">
+<main class="certificate" id="certificate">
   <header class="top-brand">
     <img class="logo" id="logo" src="lan.png" alt="Language Whispers logo">
 
@@ -418,9 +407,7 @@ h1 {
   <p class="eyebrow">CERTIFICATE OF ACHIEVEMENT</p>
   <h1>Certificate</h1>
 
-  <p class="intro">
-    This certificate is proudly presented to
-  </p>
+  <p class="intro">This certificate is proudly presented to</p>
 
   <img class="student-photo" id="studentPhoto"
        src="student.jpg" alt="Student portrait">
@@ -458,7 +445,7 @@ h1 {
       Certificate Authority
     </div>
 
-    <div class="qr-area">
+    <div class="qr-area" id="qrArea">
       <div id="qrcode" aria-label="Certificate QR code"></div>
       <div>SCAN TO VERIFY</div>
     </div>
@@ -473,119 +460,200 @@ h1 {
     CERTIFICATE ID: <span id="certId">LW-TUR-2026-001</span>
   </div>
 
-  <div class="footer">
-  Whisper today, speak loud tomorrow
-  </div>
+  <div class="footer">Whisper today, speak loud tomorrow</div>
 </main>
 
 <script>
-const nameInput = document.getElementById("nameInput");
-const dateInput = document.getElementById("dateInput");
-const studentName = document.getElementById("studentName");
-const displayDate = document.getElementById("displayDate");
-const statusBox = document.getElementById("status");
-const qrBox = document.getElementById("qrcode");
+(() => {
+  "use strict";
 
-const certificateId = "LW-TUR-2026-001";
+  const $ = id => document.getElementById(id);
 
-document.getElementById("certId").textContent = certificateId;
+  const nameInput = $("nameInput");
+  const dateInput = $("dateInput");
+  const statusBox = $("status");
+  const qrBox = $("qrcode");
 
-const today = new Date();
-dateInput.value =
-  `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  const DEFAULT_ID = "LW-TUR-2026-001";
 
-function updateCertificate() {
-  studentName.textContent = nameInput.value.trim() || "Student Name";
+  // Static-site records are a prototype, not a secure database.
+  // Replace this example record with the real student's approved details.
+  const records = {
+    [DEFAULT_ID]: {
+      name: "Student Name",
+      date: "2026-10-14",
+      logo: "lan.png",
+      photo: "student.jpg",
+      scores: { A1: "20 / 20", A2: "18 / 20", B1: "26 / 29" }
+    }
+  };
 
-  if (dateInput.value) {
-    displayDate.textContent = new Date(
-      dateInput.value + "T12:00:00"
-    ).toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "long",
-      day: "numeric"
-    });
-  } else {
-    displayDate.textContent = "Date of Issue";
-  }
-}
+  const params = new URLSearchParams(location.search);
+  const requestedId = params.get("id");
 
-function certificateURL() {
-  const url = new URL(window.location.href);
+  // If a QR ID is present, show the public certificate only.
+  const isPublicView = Boolean(requestedId);
 
-  url.search = "";
-  url.hash = "";
+  if (isPublicView) {
+    document.body.classList.add("public-view");
 
-  url.searchParams.set("name", nameInput.value.trim() || "Student Name");
-  url.searchParams.set("id", certificateId);
-  url.searchParams.set("date", dateInput.value);
+    const record = records[requestedId];
 
-  return url.href;
-}
-
-function generateQR() {
-  updateCertificate();
-  qrBox.innerHTML = "";
-
-  if (typeof QRCode === "undefined") {
-    statusBox.textContent =
-      "QR library did not load. Check your internet connection and reload.";
-    return;
-  }
-
-  if (window.location.protocol === "file:") {
-    statusBox.textContent =
-      "QR can be generated, but public verification requires uploading this page to an HTTPS website.";
-  } else {
-    statusBox.textContent =
-      "QR generated. Scan it to open this certificate page.";
-  }
-
-  new QRCode(qrBox, {
-    text: certificateURL(),
-    width: 90,
-    height: 90,
-    colorDark: "#13342b",
-    colorLight: "#ffffff",
-    correctLevel: QRCode.CorrectLevel.H
-  });
-}
-
-function loadImage(inputId, imageId) {
-  document.getElementById(inputId).addEventListener("change", function () {
-    const file = this.files && this.files[0];
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      statusBox.textContent = "Please select a valid image file.";
+    if (!record) {
+      $("certificate").hidden = true;
+      document.body.innerHTML = `
+        <main style="max-width:650px;margin:50px auto;padding:25px;
+                    text-align:center;font-family:Arial,sans-serif;
+                    background:white;border-radius:12px">
+          <h1>Certificate Not Found</h1>
+          <p>This certificate ID could not be verified.</p>
+          <p>Language Whispers</p>
+        </main>`;
       return;
     }
 
-    const reader = new FileReader();
+    // Use the stored record, never values supplied as name/date URL parameters.
+    $("studentName").textContent = record.name;
+    $("certId").textContent = requestedId;
+    $("displayDate").textContent = formatDate(record.date);
 
-    reader.onload = function (event) {
-      document.getElementById(imageId).src = event.target.result;
+    $("logo").src = record.logo;
+    $("studentPhoto").src = record.photo;
+
+    $("certificate").querySelectorAll(".score .points").forEach((el, i) => {
+      el.textContent = [record.scores.A1, record.scores.A2, record.scores.B1][i];
+    });
+
+    $("certificate").querySelectorAll(".score .percentage").forEach((el, i) => {
+      el.textContent = ["100% score", "90% score", "89.7% score"][i];
+    });
+
+    // No QR on the public view is necessary, but retaining it allows
+    // the certificate to be checked again. Generate the same ID-only URL.
+    makeQR(requestedId);
+    return;
+  }
+
+  // Editor mode
+  $("certId").textContent = DEFAULT_ID;
+
+  const now = new Date();
+  dateInput.value = [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, "0"),
+    String(now.getDate()).padStart(2, "0")
+  ].join("-");
+
+  function formatDate(value) {
+    if (!value) return "Date of Issue";
+    const parsed = new Date(value + "T12:00:00");
+    if (Number.isNaN(parsed.getTime())) return value;
+    return parsed.toLocaleDateString(undefined, {
+      year: "numeric", month: "long", day: "numeric"
+    });
+  }
+
+  function updatePreview() {
+    $("studentName").textContent = nameInput.value.trim() || "Student Name";
+    $("displayDate").textContent = formatDate(dateInput.value);
+  }
+
+  function makeQR(id) {
+    qrBox.innerHTML = "";
+
+    if (typeof QRCode === "undefined") {
+      if (statusBox) statusBox.textContent =
+        "QR library did not load. Check your internet connection.";
+      return;
+    }
+
+    // QR points to this same HTML page, but with only an ID.
+    // The ID activates public mode, which hides editing controls.
+    const url = new URL(location.href);
+    url.search = "";
+    url.hash = "";
+    url.searchParams.set("id", id);
+
+    new QRCode(qrBox, {
+      text: url.href,
+      width: 90,
+      height: 90,
+      colorDark: "#13342b",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.H
+    });
+  }
+
+  function readImage(inputId, imageId) {
+    $(inputId).addEventListener("change", function () {
+      const file = this.files && this.files[0];
+      if (!file) return;
+
+      if (!file.type.startsWith("image/")) {
+        statusBox.textContent = "Please select a valid image file.";
+        return;
+      }
+
+      const reader = new FileReader();
+
+      reader.onload = event => {
+        $(imageId).src = event.target.result;
+        statusBox.textContent =
+          "Image preview updated. Make sure the public record uses a hosted image URL.";
+      };
+
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function saveRecord() {
+    const id = $("certId").textContent.trim() || DEFAULT_ID;
+
+    // Browsers cannot publish edits to a Vercel static site or GitHub
+    // automatically. This creates a JSON record for the developer to save
+    // in the deployed site's record source.
+    const record = {
+      name: nameInput.value.trim() || "Student Name",
+      date: dateInput.value,
+      logo: $("logo").getAttribute("src"),
+      photo: $("studentPhoto").getAttribute("src"),
+      scores: { A1: "20 / 20", A2: "18 / 20", B1: "26 / 29" }
     };
 
-    reader.readAsDataURL(file);
+    const blob = new Blob([JSON.stringify({ [id]: record }, null, 2)], {
+      type: "application/json"
+    });
+
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = id + ".json";
+    link.click();
+    URL.revokeObjectURL(link.href);
+
+    statusBox.textContent =
+      "Record downloaded. The public record source must be updated and redeployed before scanning will show these edits.";
+    makeQR(id);
+  }
+
+  nameInput.addEventListener("input", updatePreview);
+  dateInput.addEventListener("change", updatePreview);
+  $("qrButton").addEventListener("click", () => {
+    updatePreview();
+    makeQR($("certId").textContent.trim() || DEFAULT_ID);
+    statusBox.textContent =
+      location.protocol === "file:"
+        ? "Deploy this page to Vercel for QR scanning from other devices."
+        : "QR generated. Save and publish the matching certificate record.";
   });
-}
 
-nameInput.addEventListener("input", updateCertificate);
-dateInput.addEventListener("change", updateCertificate);
+  $("saveButton").addEventListener("click", saveRecord);
 
-document.getElementById("qrButton").addEventListener("click", generateQR);
+  readImage("logoInput", "logo");
+  readImage("photoInput", "studentPhoto");
 
-loadImage("logoInput", "logo");
-loadImage("photoInput", "studentPhoto");
-
-const params = new URLSearchParams(window.location.search);
-
-if (params.has("name")) nameInput.value = params.get("name");
-if (params.has("date")) dateInput.value = params.get("date");
-
-updateCertificate();
-generateQR();
+  updatePreview();
+  makeQR(DEFAULT_ID);
+})();
 </script>
 
 </body>
