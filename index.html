@@ -1,202 +1,998 @@
 
-<script>
-(() => {
-  "use strict";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#13342B">
+  <title>Language Whispers Certificate</title>
 
-  const $ = id => document.getElementById(id);
-  const nameInput = $("nameInput");
-  const dateInput = $("dateInput");
-  const statusBox = $("status");
-  const qrBox = $("qrcode");
+  <!-- QR code generator -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-  const DEFAULT_ID = "LW-TUR-2026-001";
-  const params = new URLSearchParams(location.search);
-  const requestedId = params.get("id");
-  const isPublicView = Boolean(requestedId);
+  <style>
+    :root {
+      --green: #13342B;
+      --green-light: #3B8870;
+      --gold: #C9A75D;
+      --cream: #FBF8EF;
+      --text: #26352E;
+    }
 
-  function formatDate(value) {
-    if (!value) return "Date of Issue";
+    * {
+      box-sizing: border-box;
+    }
 
-    const parsed = new Date(value + "T12:00:00");
+    body {
+      margin: 0;
+      padding: 24px;
+      background: #e9eee9;
+      color: var(--text);
+      font-family: Georgia, "Times New Roman", serif;
+    }
 
-    if (Number.isNaN(parsed.getTime())) return value;
+    .toolbar {
+      max-width: 1100px;
+      margin: 0 auto 24px;
+      padding: 22px;
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 5px 22px #13342b12;
+      font-family: Arial, sans-serif;
+    }
 
-    return parsed.toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "long",
-      day: "numeric"
-    });
-  }
+    .toolbar h1 {
+      margin: 0 0 8px;
+      color: var(--green);
+      font-size: 25px;
+    }
 
-  function updatePreview() {
-    $("studentName").textContent =
-      nameInput.value.trim() || "Student Name";
+    .toolbar p {
+      color: #64736a;
+      line-height: 1.6;
+      font-size: 14px;
+    }
 
-    $("displayDate").textContent = formatDate(dateInput.value);
-  }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
 
-  function makeQR() {
-    qrBox.innerHTML = "";
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
 
-    if (typeof QRCode === "undefined") {
-      if (statusBox) {
-        statusBox.textContent =
-          "QR library failed to load. Check your internet connection.";
+    .field label {
+      font-size: 13px;
+      font-weight: bold;
+      color: var(--green);
+    }
+
+    input {
+      width: 100%;
+      min-width: 0;
+      padding: 12px;
+      border: 1px solid #d5ded7;
+      border-radius: 8px;
+      font-size: 14px;
+      background: white;
+    }
+
+    input:focus {
+      outline: 2px solid #3B887055;
+      border-color: var(--green-light);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 12px 17px;
+      border: 0;
+      border-radius: 8px;
+      background: var(--green);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    button:hover {
+      background: var(--green-light);
+    }
+
+    button.secondary {
+      background: #e8efe9;
+      color: var(--green);
+      border: 1px solid #d5ded7;
+    }
+
+    #status {
+      margin-top: 14px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--green);
+      overflow-wrap: anywhere;
+    }
+
+    .certificate {
+      position: relative;
+      width: 100%;
+      max-width: 1100px;
+      min-height: 760px;
+      margin: 0 auto;
+      padding: 22px;
+      background: var(--cream);
+      border: 7px double var(--gold);
+      box-shadow: 0 12px 35px #13342b1c;
+      overflow: hidden;
+    }
+
+    .certificate-inner {
+      position: relative;
+      min-height: 700px;
+      padding: 28px 35px;
+      border: 1px solid #d9c58f;
+      text-align: center;
+    }
+
+    .top-label {
+      color: var(--green-light);
+      text-transform: uppercase;
+      letter-spacing: 5px;
+      font: bold 12px Arial, sans-serif;
+    }
+
+    .brand {
+      margin: 12px 0 5px;
+      color: var(--green);
+      font-size: clamp(25px, 4vw, 39px);
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    .brand-line {
+      width: 100px;
+      height: 3px;
+      margin: 12px auto 20px;
+      background: var(--gold);
+    }
+
+    .certificate-title {
+      margin: 0;
+      color: var(--green);
+      font-size: clamp(27px, 4vw, 43px);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .subtitle {
+      margin: 12px 0 18px;
+      color: #66776a;
+      font-size: 15px;
+      font-style: italic;
+    }
+
+    .award-text {
+      margin: 18px 0 12px;
+      font-size: 17px;
+    }
+
+    .student-photo {
+      display: block;
+      width: 118px;
+      height: 118px;
+      margin: 0 auto 12px;
+      border: 4px solid var(--gold);
+      border-radius: 50%;
+      background: #edf0e8;
+      object-fit: cover;
+    }
+
+    .student-name {
+      margin: 8px auto;
+      color: var(--green);
+      font-size: clamp(27px, 4vw, 39px);
+      font-weight: bold;
+      overflow-wrap: anywhere;
+    }
+
+    .name-line {
+      width: 70%;
+      max-width: 450px;
+      height: 1px;
+      margin: 10px auto 16px;
+      background: var(--gold);
+    }
+
+    .description {
+      max-width: 650px;
+      margin: 0 auto;
+      color: #4b5b50;
+      font-size: 15px;
+      line-height: 1.8;
+    }
+
+    .scores {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 15px;
+      max-width: 720px;
+      margin: 25px auto;
+    }
+
+    .score-card {
+      padding: 17px 8px;
+      border: 1px solid #dfd2a8;
+      background: #fffdf6;
+    }
+
+    .score-level {
+      color: var(--green-light);
+      font: bold 12px Arial, sans-serif;
+      letter-spacing: 2px;
+    }
+
+    .score-number {
+      margin-top: 9px;
+      color: var(--green);
+      font-size: 25px;
+      font-weight: bold;
+    }
+
+    .score-result {
+      margin-top: 5px;
+      color: #758075;
+      font: 11px Arial, sans-serif;
+    }
+
+
+.bottom-section {
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  justify-items: center;
+  gap: 20px 12px;
+}
+
+.logo-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.signature {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+
+.qr-area {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+    .logo-area img {
+      display: block;
+      width: 78px;
+      height: 78px;
+      margin: 0 auto 8px;
+      object-fit: contain;
+    }
+
+      .logo-caption {
+      color: var(--green);
+      font: bold 10px Arial, sans-serif;
+      letter-spacing: 1px;
+      text-align: center;
+    }
+
+    .signature {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 12px 5px;
+      border-top: 1px solid var(--gold);
+      color: #536357;
+      font: 12px/1.7 Arial, sans-serif;
+      text-align: center;
+    }
+
+   .signature::before {
+  content: "AUTHORIZED BY";
+  display: block;
+  margin-bottom: 8px;
+  color: var(--green-light);
+  font: bold 9px Arial, sans-serif;
+  letter-spacing: 1.5px;
+}
+
+   .signature strong {
+  display: block;
+  color: var(--green);
+  font: bold 16px Georgia, "Times New Roman", serif;
+  text-align: center;
+}
+
+   .qr-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+}
+
+    #qrcode {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 105px;
+      height: 105px;
+      padding: 5px;
+      background: white;
+      border: 1px solid #ddd;
+    }
+
+    #qrcode img,
+    #qrcode canvas {
+      display: block;
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    .qr-caption {
+      max-width: 120px;
+      color: #617066;
+      font: bold 9px/1.5 Arial, sans-serif;
+      letter-spacing: 1px;
+      text-align: center;
+    }
+
+    .certificate-date {
+      margin-top: 24px;
+      padding-top: 12px;
+      border-top: 1px solid #e7dec4;
+      color: #69776c;
+      font: 12px/1.6 Arial, sans-serif;
+      text-align: center;
+    }
+
+    .certificate-date span {
+      color: var(--green);
+      font-weight: bold;
+    }
+
+    .footer-text {
+      margin-top: 12px;
+      color: var(--green-light);
+      font-size: 13px;
+      font-style: italic;
+      text-align: center;
+    }
+
+    .public-view .toolbar {
+      display: none;
+    }
+
+    .public-view body {
+      padding-top: 20px;
+    }
+
+    .public-view .certificate {
+      max-width: 1100px;
+    }
+
+    .public-view #qrcode {
+      display: none;
+    }
+
+    .public-view .qr-caption {
+      display: none;
+    }
+
+    @media (max-width: 650px) {
+      body {
+        padding: 10px;
       }
-      return;
-    }
 
-    // A QR code must point to an online page, not a local file.
-    if (location.protocol === "file:") {
-      if (statusBox) {
-        statusBox.textContent =
-          "Preview only: publish this HTML online before generating a scannable QR.";
+      .toolbar {
+        padding: 16px;
       }
-      return;
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .certificate {
+        padding: 10px;
+        border-width: 4px;
+        min-height: auto;
+      }
+
+      .certificate-inner {
+        padding: 22px 12px;
+        min-height: auto;
+      }
+
+      .top-label {
+        letter-spacing: 3px;
+      }
+
+      .scores {
+        gap: 6px;
+      }
+
+      .score-card {
+        padding: 12px 4px;
+      }
+
+      .score-number {
+        font-size: 19px;
+      }
+
+      .score-level {
+        letter-spacing: 1px;
+        font-size: 10px;
+      }
+
+      .bottom-section {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: end;
+        gap: 24px 12px;
+        margin-top: 25px;
+        padding-top: 18px;
+      }
+
+      .logo-area {
+        grid-column: 1;
+        grid-row: 1;
+      }
+
+      .signature {
+        grid-column: 2;
+        grid-row: 1;
+      }
+
+      .qr-area {
+        grid-column: 1 / -1;
+        grid-row: 2;
+      }
+
+      .logo-area img {
+        width: 65px;
+        height: 65px;
+      }
+
+      #qrcode {
+        width: 100px;
+        height: 100px;
+      }
+
+      .description {
+        font-size: 13px;
+      }
     }
 
-    const url = new URL(location.href);
-
-    // Remove previous parameters before creating the public certificate URL.
-    url.search = "";
-    url.hash = "";
-
-    url.searchParams.set("id", $("certId").textContent.trim() || DEFAULT_ID);
-    url.searchParams.set(
-      "name",
-      nameInput.value.trim() || "Student Name"
-    );
-    url.searchParams.set("date", dateInput.value || "");
-
-    new QRCode(qrBox, {
-      text: url.href,
-      width: 90,
-      height: 90,
-      colorDark: "#13342b",
-      colorLight: "#ffffff",
-      correctLevel: QRCode.CorrectLevel.H
-    });
-  }
-
-  function showPublicCertificate() {
-    document.body.classList.add("public-view");
-
-    // FIX: use the name and date encoded into this certificate's QR URL.
-    // Do not load the hard-coded "Student Name" record.
-    const studentName = params.get("name");
-    const issueDate = params.get("date");
-
-    if (!studentName) {
-      document.body.innerHTML = `
-        <main style="max-width:650px;margin:50px auto;padding:25px;
-          text-align:center;font-family:Arial,sans-serif;background:white">
-          <h1>Certificate Details Missing</h1>
-          <p>This QR code does not contain the student's name.</p>
-          <p>Please generate a new QR code from the certificate editor.</p>
-          <p>Language Whispers</p>
-        </main>`;
-      return;
+    @page {
+      size: A4 landscape;
+      margin: 8mm;
     }
 
-    $("studentName").textContent = studentName;
-    $("certId").textContent = requestedId;
-    $("displayDate").textContent = formatDate(issueDate);
+    @media print {
+      body {
+        margin: 0;
+        padding: 0;
+        background: white;
+      }
 
-    // These image files must exist online alongside the HTML.
-    // Locally uploaded images cannot automatically be shared with scanners.
-    $("logo").src = "lan.png";
-    $("studentPhoto").src = "student.jpg";
+      .toolbar {
+        display: none !important;
+      }
 
-    // Preserve the existing certificate scores.
-    // The QR contains the student's name and date, not editable score data.
-    return;
-  }
+      .certificate {
+        width: 100%;
+        max-width: none;
+        min-height: 0;
+        margin: 0;
+        padding: 10px;
+        border: 5px double var(--gold);
+        box-shadow: none;
+        break-inside: avoid;
+      }
 
-  function readImage(inputId, imageId) {
-    $(inputId).addEventListener("change", function () {
-      const file = this.files && this.files[0];
+      .certificate-inner {
+        min-height: 0;
+        padding: 18px 25px;
+      }
+
+      .brand {
+        font-size: 31px;
+      }
+
+      .certificate-title {
+        font-size: 34px;
+      }
+
+      .student-photo {
+        width: 95px;
+        height: 95px;
+      }
+
+      .student-name {
+        font-size: 31px;
+      }
+
+      .scores {
+        margin: 17px auto;
+      }
+
+      .score-card {
+        padding: 11px 6px;
+      }
+
+      .score-number {
+        font-size: 22px;
+      }
+
+          .bottom-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      align-items: center;
+      justify-items: center;
+      gap: 20px;
+      width: 100%;
+      max-width: 780px;
+      margin: 30px auto 0;
+      padding-top: 20px;
+    }
+
+      .logo-area img {
+        width: 65px;
+        height: 65px;
+      }
+
+      #qrcode {
+        width: 85px;
+        height: 85px;
+      }
+
+      .signature strong {
+        font-size: 15px;
+      }
+
+      .footer-text {
+        margin-top: 10px;
+      }
+
+      .certificate-date {
+        margin-top: 14px;
+        padding-top: 9px;
+      }
+
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+    }
+
+  </style>
+</head>
+
+<body>
+  <section class="toolbar">
+    <h1>Language Whispers — Certificate Creator</h1>
+    <p>
+      Enter the student's information, add the logo and photo, generate the QR
+      code, and print or save the certificate as a PDF.
+    </p>
+
+    <div class="form-grid">
+      <div class="field">
+        <label for="studentName">Student's full name</label>
+        <input
+          id="studentName"
+          type="text"
+          placeholder="Enter student's full name"
+          value="Student Name"
+        >
+      </div>
+
+      <div class="field">
+        <label for="certificateDate">Certificate date</label>
+        <input id="certificateDate" type="date" value="2026-10-14">
+      </div>
+
+      <div class="field">
+        <label for="logoUpload">Upload Language Whispers logo</label>
+        <input id="logoUpload" type="file" accept="image/*">
+      </div>
+
+      <div class="field">
+        <label for="photoUpload">Upload student's picture</label>
+        <input id="photoUpload" type="file" accept="image/*">
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="button" id="generateBtn">Generate QR Code</button>
+      <button type="button" class="secondary" id="saveBtn">
+        Save Certificate Record
+      </button>
+      <button type="button" id="printBtn">Print / Save as PDF</button>
+    </div>
+
+    <div id="status" role="status" aria-live="polite">
+      Enter the student's details to begin.
+    </div>
+  </section>
+
+  <main class="certificate">
+    <div class="certificate-inner">
+      <div class="top-label">Language Learning Achievement</div>
+
+      <div class="brand">Language Whispers</div>
+      <div class="brand-line"></div>
+
+      <h1 class="certificate-title">Certificate of Achievement</h1>
+
+      <p class="subtitle">Turkish Language Programme</p>
+
+      <p class="award-text">This certificate is proudly presented to</p>
+
+      <img
+        id="displayPhoto"
+        class="student-photo"
+        src="student.jpg"
+        alt="Student picture"
+      >
+
+      <div class="student-name" id="displayName">Student Name</div>
+      <div class="name-line"></div>
+
+      <p class="description">
+        In recognition of dedication, effort, and achievement in the Turkish
+        language programme offered by Language Whispers. The following results
+        reflect the student's performance across the completed levels.
+      </p>
+
+      <section class="scores" aria-label="Language test scores">
+        <div class="score-card">
+          <div class="score-level">A1 LEVEL</div>
+          <div class="score-number">20 / 20</div>
+          <div class="score-result">Excellent achievement</div>
+        </div>
+
+        <div class="score-card">
+          <div class="score-level">A2 LEVEL</div>
+          <div class="score-number">18 / 20</div>
+          <div class="score-result">Very good achievement</div>
+        </div>
+
+        <div class="score-card">
+          <div class="score-level">B1 LEVEL</div>
+          <div class="score-number">26 / 29</div>
+          <div class="score-result">Very good achievement</div>
+        </div>
+      </section>
+
+      <div class="bottom-section">
+        <div class="logo-area">
+          <img
+            id="displayLogo"
+            src="lan.png"
+            alt="Language Whispers logo"
+          >
+          <div class="logo-caption">LANGUAGE WHISPERS</div>
+        </div>
+
+        <div class="signature">
+          <strong>Sumeya Anwar</strong>
+          Founder / Developer
+        </div>
+
+        <div class="qr-area">
+          <div id="qrcode"></div>
+          <div class="qr-caption">SCAN TO VIEW CERTIFICATE</div>
+        </div>
+      </div>
+
+      <div class="certificate-date">
+        Issued on: <span id="displayDate">14 October 2026</span>
+      </div>
+
+      <div class="footer-text">
+        Whisper today, speak loud tomorrow.
+      </div>
+    </div>
+  </main>
+
+  <script>
+    "use strict";
+
+    const DEFAULT_LOGO = "lan.png";
+    const DEFAULT_PHOTO = "student.jpg";
+
+    const DEFAULT_ID = "LW-TUR-2026-001";
+
+    const SCORES = {
+      A1: "20 / 20",
+      A2: "18 / 20",
+      B1: "26 / 29"
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    let uploadedLogoData = null;
+    let uploadedPhotoData = null;
+    let currentCertificateId = DEFAULT_ID;
+
+    function formatDate(value) {
+      if (!value) return "";
+
+      const date = new Date(value + "T12:00:00");
+
+      if (Number.isNaN(date.getTime())) {
+        return value;
+      }
+
+      return date.toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+      });
+    }
+
+    function setStatus(message) {
+      $("status").textContent = message;
+    }
+
+    function updateCertificate() {
+      const name = $("studentName").value.trim() || "Student Name";
+      const date = $("certificateDate").value;
+
+      $("displayName").textContent = name;
+      $("displayDate").textContent = formatDate(date);
+    }
+
+    function readImageFile(file, callback) {
       if (!file) return;
 
       if (!file.type.startsWith("image/")) {
-        statusBox.textContent = "Please select a valid image file.";
+        setStatus("Please select a valid image file.");
         return;
       }
 
       const reader = new FileReader();
 
-      reader.onload = event => {
-        $(imageId).src = event.target.result;
+      reader.onload = () => callback(reader.result);
 
-        statusBox.textContent =
-          "Image preview updated. To show this uploaded image after scanning, upload it to your website and use its public image URL.";
+      reader.onerror = () => {
+        setStatus("The image could not be read. Please try another file.");
       };
 
       reader.readAsDataURL(file);
-    });
-  }
-
-  function saveRecord() {
-    const record = {
-      id: $("certId").textContent.trim() || DEFAULT_ID,
-      name: nameInput.value.trim() || "Student Name",
-      date: dateInput.value,
-      note: "This is a local export. It does not publish the record online."
-    };
-
-    const blob = new Blob([JSON.stringify(record, null, 2)], {
-      type: "application/json"
-    });
-
-    const downloadUrl = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-
-    link.href = downloadUrl;
-    link.download = record.id + ".json";
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-
-    setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
-
-    statusBox.textContent =
-      "Record downloaded. The QR now contains the current name and date. Uploaded images still need public URLs.";
-  }
-
-  if (isPublicView) {
-    showPublicCertificate();
-    return;
-  }
-
-  // Editor view
-  $("certId").textContent = DEFAULT_ID;
-
-  const now = new Date();
-
-  dateInput.value = [
-    now.getFullYear(),
-    String(now.getMonth() + 1).padStart(2, "0"),
-    String(now.getDate()).padStart(2, "0")
-  ].join("-");
-
-  nameInput.addEventListener("input", updatePreview);
-  dateInput.addEventListener("change", updatePreview);
-
-  $("qrButton").addEventListener("click", () => {
-    updatePreview();
-    makeQR();
-
-    if (location.protocol !== "file:") {
-      statusBox.textContent =
-        "QR generated using the current student name and date. Scan it after publishing this page online.";
     }
-  });
 
-  $("saveButton").addEventListener("click", saveRecord);
+    $("studentName").addEventListener("input", updateCertificate);
+    $("certificateDate").addEventListener("change", updateCertificate);
 
-  readImage("logoInput", "logo");
-  readImage("photoInput", "studentPhoto");
+    $("logoUpload").addEventListener("change", (event) => {
+      const file = event.target.files[0];
 
-  updatePreview();
-  makeQR();
-})();
-</script>
+      readImageFile(file, (imageData) => {
+        uploadedLogoData = imageData;
+        $("displayLogo").src = imageData;
+        setStatus(
+          "Logo preview updated. For the scanned certificate, host the logo online as lan.png."
+        );
+      });
+    });
+
+    $("photoUpload").addEventListener("change", (event) => {
+      const file = event.target.files[0];
+
+      readImageFile(file, (imageData) => {
+        uploadedPhotoData = imageData;
+        $("displayPhoto").src = imageData;
+        setStatus(
+          "Student photo preview updated. For the scanned certificate, host the photo online as student.jpg."
+        );
+      });
+    });
+
+    function createCertificateUrl(id, name, date) {
+      const url = new URL(window.location.href);
+
+      url.search = "";
+      url.hash = "";
+
+      url.searchParams.set("id", id);
+      url.searchParams.set("name", name);
+      url.searchParams.set("date", date);
+
+      return url.href;
+    }
+
+    function makeQR(id, name, date) {
+      const qrContainer = $("qrcode");
+      qrContainer.innerHTML = "";
+
+      if (typeof QRCode === "undefined") {
+        setStatus(
+          "QR generator did not load. Check your internet connection and reload the page."
+        );
+        return false;
+      }
+
+      if (
+        window.location.protocol === "file:" ||
+        !window.location.hostname
+      ) {
+        setStatus(
+          "Publish this HTML online first. Then open the published page and generate the QR code so it can be scanned on another phone."
+        );
+        return false;
+      }
+
+      const certificateUrl = createCertificateUrl(id, name, date);
+
+      try {
+        new QRCode(qrContainer, {
+          text: certificateUrl,
+          width: 180,
+          height: 180,
+          colorDark: "#13342B",
+          colorLight: "#FFFFFF",
+          correctLevel: QRCode.CorrectLevel.H
+        });
+
+        setStatus(
+          "QR code generated. Scan it with another device to check the public certificate page."
+        );
+
+        return true;
+      } catch (error) {
+        console.error("QR generation failed:", error);
+
+        setStatus(
+          "Could not generate the QR code. Check your internet connection and try again."
+        );
+
+        return false;
+      }
+    }
+
+    $("generateBtn").addEventListener("click", () => {
+      const name = $("studentName").value.trim();
+      const date = $("certificateDate").value;
+
+      if (!name) {
+        setStatus("Please enter the student's full name.");
+        $("studentName").focus();
+        return;
+      }
+
+      if (!date) {
+        setStatus("Please select the certificate date.");
+        $("certificateDate").focus();
+        return;
+      }
+
+      currentCertificateId =
+        "LW-TUR-" + date.replaceAll("-", "") + "-" +
+        name.trim().replace(/\s+/g, "-").toUpperCase().slice(0, 20);
+
+      updateCertificate();
+      makeQR(currentCertificateId, name, date);
+    });
+
+    $("saveBtn").addEventListener("click", () => {
+      const name = $("studentName").value.trim();
+      const date = $("certificateDate").value;
+
+      if (!name || !date) {
+        setStatus("Enter the student's name and certificate date first.");
+        return;
+      }
+
+      const record = {
+        certificateId: currentCertificateId,
+        name: name,
+        date: date,
+        scores: SCORES,
+        programme: "Turkish Language Programme",
+        issuer: "Language Whispers",
+        founder: "Sumeya Anwar",
+        logo: DEFAULT_LOGO,
+        photo: DEFAULT_PHOTO,
+        certificateUrl: createCertificateUrl(
+          currentCertificateId,
+          name,
+          date
+        ),
+        createdAt: new Date().toISOString()
+      };
+
+      const blob = new Blob(
+        [JSON.stringify(record, null, 2)],
+        { type: "application/json" }
+      );
+
+      const downloadUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = downloadUrl;
+      link.download = currentCertificateId + ".json";
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      URL.revokeObjectURL(downloadUrl);
+
+      setStatus(
+        "Certificate record downloaded as a JSON file. This saves a local record; it does not upload or register the certificate online."
+      );
+    });
+
+    $("printBtn").addEventListener("click", () => {
+      updateCertificate();
+      window.print();
+    });
+
+    function loadPublicCertificate() {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("id");
+
+      if (!id) return;
+
+      const name = params.get("name");
+      const date = params.get("date");
+
+      document.body.classList.add("public-view");
+
+      if (!name || !date) {
+        document.querySelector(".certificate").innerHTML =
+          '<div style="padding:40px;text-align:center;font-family:Arial,sans-serif">' +
+          '<h1>Certificate information is incomplete</h1>' +
+          '<p>Please use a valid Language Whispers certificate link.</p>' +
+          "</div>";
+
+        return;
+      }
+
+      currentCertificateId = id;
+
+      $("studentName").value = name;
+      $("certificateDate").value = date;
+
+      $("displayName").textContent = name;
+      $("displayDate").textContent = formatDate(date);
+
+      /*
+        Public view uses hosted images:
+        lan.png and student.jpg.
+        Local file uploads do not automatically transfer to another device.
+      */
+      $("displayLogo").src = DEFAULT_LOGO;
+      $("displayPhoto").src = DEFAULT_PHOTO;
+
+      document.title = "Language Whispers Certificate — " + name;
+    }
+
+    updateCertificate();
+    loadPublicCertificate();
+  </script>
+</body>
+</html>
