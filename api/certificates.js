@@ -11,7 +11,7 @@ module.exports = async function handler(req, res) {
   }
 
   const baseUrl = supabaseUrl.trim().replace(/\/+$/, "");
-  const tableUrl = `${baseUrl}/rest/v1/certificates`;
+const tableUrl = `${baseUrl.replace(/\/rest\/v1\/?$/, "")}/rest/v1/certificates`;
 
   const headers = {
     apikey: secretKey,
