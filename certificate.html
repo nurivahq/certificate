@@ -1,0 +1,592 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Language Whispers Certificate</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+:root {
+  --green: #13342b;
+  --green-light: #3b8870;
+  --gold: #c9a45c;
+  --cream: #fbf8f0;
+  --text: #263c34;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 24px 14px;
+  background: #edf2ee;
+  color: var(--text);
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.toolbar {
+  width: min(100%, 1000px);
+  margin: 0 auto 18px;
+  padding: 16px;
+  background: white;
+  border-radius: 12px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  font-family: Arial, sans-serif;
+}
+
+.toolbar input,
+.toolbar button {
+  max-width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1ddd5;
+  border-radius: 7px;
+  font-size: 14px;
+}
+
+.toolbar button {
+  cursor: pointer;
+  background: var(--green);
+  color: white;
+  border: 0;
+}
+
+.toolbar button:hover {
+  background: var(--green-light);
+}
+
+.upload-label {
+  font-size: 13px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.certificate {
+  position: relative;
+  width: min(100%, 1120px);
+  margin: auto;
+  padding: clamp(18px, 4vw, 48px);
+  background: var(--cream);
+  border: 5px double var(--gold);
+  outline: 1px solid var(--green);
+  outline-offset: -12px;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.top-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.logo {
+  width: 76px;
+  height: 76px;
+  object-fit: contain;
+  border-radius: 50px;
+}
+
+.brand-name {
+  margin: 0;
+  font-size: clamp(20px, 3vw, 30px);
+  letter-spacing: 2px;
+  color: var(--green);
+}
+
+.tagline {
+  margin: 5px 0;
+  font-size: 12px;
+  color: var(--green-light);
+  letter-spacing: 1px;
+}
+
+.eyebrow {
+  margin: 20px 0 4px;
+  color: var(--gold);
+  letter-spacing: 4px;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+h1 {
+  color: var(--green);
+  font-size: clamp(30px, 6vw, 54px);
+  margin: 5px 0 12px;
+  line-height: 1.1;
+}
+
+.intro {
+  margin: 12px auto;
+  max-width: 650px;
+  line-height: 1.7;
+  font-size: 15px;
+}
+
+.student-photo {
+  width: 116px;
+  height: 116px;
+  border-radius: 50%;
+  border: 4px solid var(--gold);
+  object-fit: cover;
+  margin: 14px auto;
+  display: block;
+  background: #e5ece6;
+}
+
+.student-name {
+  color: var(--green);
+  font-size: clamp(25px, 5vw, 38px);
+  margin: 8px 0;
+  font-weight: bold;
+  border-bottom: 1px solid var(--gold);
+  display: inline-block;
+  padding: 0 10px 8px;
+}
+
+.award-text {
+  font-size: 15px;
+  line-height: 1.7;
+  margin: 10px auto 20px;
+  max-width: 700px;
+}
+
+.scores {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 24px auto;
+  max-width: 760px;
+}
+
+.score {
+  padding: 17px 8px;
+  border: 1px solid var(--gold);
+  background: white;
+  border-radius: 8px;
+}
+
+.level {
+  color: var(--green-light);
+  font-weight: bold;
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+.points {
+  font-size: clamp(22px, 4vw, 30px);
+  color: var(--green);
+  font-weight: bold;
+  margin: 9px 0 4px;
+}
+
+.percentage {
+  color: #69766f;
+  font-size: 13px;
+}
+
+.bottom {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: end;
+  gap: 18px;
+  margin-top: 30px;
+}
+
+.signature {
+  border-top: 1px solid var(--green);
+  padding-top: 8px;
+  font-size: 12px;
+  min-width: 0;
+}
+
+.signature strong {
+  display: block;
+  color: var(--green);
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.qr-area {
+  text-align: center;
+  font-family: Arial, sans-serif;
+  font-size: 11px;
+  max-width: 130px;
+}
+
+#qrcode {
+  width: 100px;
+  height: 100px;
+  padding: 5px;
+  margin: 0 auto 7px;
+  background: white;
+  border: 1px solid #d9dfd9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#qrcode img,
+#qrcode canvas {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.cert-id {
+  margin-top: 18px;
+  font-size: 11px;
+  color: #64756b;
+  letter-spacing: 1px;
+  overflow-wrap: anywhere;
+}
+
+.footer {
+  margin-top: 14px;
+  color: var(--green-light);
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+.status {
+  flex-basis: 100%;
+  text-align: center;
+  font: 13px Arial, sans-serif;
+  color: var(--green);
+}
+
+@media (max-width: 600px) {
+  body {
+    padding: 12px 8px;
+  }
+
+  .certificate {
+    padding: 24px 18px;
+    border-width: 3px;
+    outline-offset: -9px;
+  }
+
+  .top-brand {
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .logo {
+    width: 62px;
+    height: 62px;
+  }
+
+  .brand-name {
+    letter-spacing: 1px;
+  }
+
+  .eyebrow {
+    letter-spacing: 2px;
+    font-size: 11px;
+  }
+
+  .intro,
+  .award-text {
+    font-size: 14px;
+  }
+
+  .scores {
+    gap: 6px;
+  }
+
+  .score {
+    padding: 13px 4px;
+  }
+
+  .level {
+    font-size: 11px;
+    letter-spacing: 0;
+  }
+
+  .percentage {
+    font-size: 11px;
+  }
+
+  .bottom {
+    grid-template-columns: 1fr 1fr;
+    gap: 20px 12px;
+  }
+
+  .qr-area {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    justify-self: center;
+  }
+
+  .signature {
+    grid-row: 2;
+  }
+}
+
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 8mm;
+  }
+
+  body {
+    padding: 0;
+    background: white;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .toolbar {
+    display: none !important;
+  }
+
+  .certificate {
+    width: 100%;
+    max-width: none;
+    min-height: 180mm;
+    margin: 0;
+    padding: 25px;
+    border-width: 4px;
+    outline-offset: -10px;
+    break-inside: avoid;
+  }
+
+  .student-photo {
+    width: 95px;
+    height: 95px;
+  }
+
+  .scores {
+    margin: 16px auto;
+  }
+
+  .bottom {
+    margin-top: 20px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="toolbar">
+  <input id="nameInput" type="text" value="Student Name"
+         aria-label="Student name" placeholder="Student name">
+
+  <input id="dateInput" type="date" aria-label="Certificate date">
+
+  <label class="upload-label">
+    Logo
+    <input id="logoInput" type="file" accept="image/*">
+  </label>
+
+  <label class="upload-label">
+    Student photo
+    <input id="photoInput" type="file" accept="image/*">
+  </label>
+
+  <button type="button" id="qrButton">Generate QR</button>
+  <button type="button" onclick="window.print()">Print / Save PDF</button>
+
+  <div class="status" id="status" role="status">
+    Edit the student details, then generate the QR code.
+  </div>
+</div>
+
+<main class="certificate">
+  <header class="top-brand">
+    <img class="logo" id="logo" src="lan.png" alt="Language Whispers logo">
+
+    <div>
+      <p class="brand-name">LANGUAGE WHISPERS</p>
+      <p class="tagline">Whisper today, speak loud tomorrow.</p>
+    </div>
+  </header>
+
+  <p class="eyebrow">CERTIFICATE OF ACHIEVEMENT</p>
+  <h1>Certificate</h1>
+
+  <p class="intro">
+    This certificate is proudly presented to
+  </p>
+
+  <img class="student-photo" id="studentPhoto"
+       src="student.jpg" alt="Student portrait">
+
+  <div class="student-name" id="studentName">Student Name</div>
+
+  <p class="award-text">
+    In recognition of successfully completing the Turkish language
+    level assessments and demonstrating dedication to language learning.
+  </p>
+
+  <section class="scores" aria-label="Assessment results">
+    <div class="score">
+      <div class="level">A1 LEVEL</div>
+      <div class="points">20 / 20</div>
+      <div class="percentage">100% score</div>
+    </div>
+
+    <div class="score">
+      <div class="level">A2 LEVEL</div>
+      <div class="points">18 / 20</div>
+      <div class="percentage">90% score</div>
+    </div>
+
+    <div class="score">
+      <div class="level">B1 LEVEL</div>
+      <div class="points">26 / 29</div>
+      <div class="percentage">89.7% score</div>
+    </div>
+  </section>
+
+  <div class="bottom">
+    <div class="signature">
+      <strong>Language Whispers</strong>
+      Certificate Authority
+    </div>
+
+    <div class="qr-area">
+      <div id="qrcode" aria-label="Certificate QR code"></div>
+      <div>SCAN TO VERIFY</div>
+    </div>
+
+    <div class="signature">
+      <strong id="displayDate">Date of Issue</strong>
+      Date of Issue
+    </div>
+  </div>
+
+  <div class="cert-id">
+    CERTIFICATE ID: <span id="certId">LW-TUR-2026-001</span>
+  </div>
+
+  <div class="footer">
+  Whisper today, speak loud tomorrow
+  </div>
+</main>
+
+<script>
+const nameInput = document.getElementById("nameInput");
+const dateInput = document.getElementById("dateInput");
+const studentName = document.getElementById("studentName");
+const displayDate = document.getElementById("displayDate");
+const statusBox = document.getElementById("status");
+const qrBox = document.getElementById("qrcode");
+
+const certificateId = "LW-TUR-2026-001";
+
+document.getElementById("certId").textContent = certificateId;
+
+const today = new Date();
+dateInput.value =
+  `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+function updateCertificate() {
+  studentName.textContent = nameInput.value.trim() || "Student Name";
+
+  if (dateInput.value) {
+    displayDate.textContent = new Date(
+      dateInput.value + "T12:00:00"
+    ).toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "long",
+      day: "numeric"
+    });
+  } else {
+    displayDate.textContent = "Date of Issue";
+  }
+}
+
+function certificateURL() {
+  const url = new URL(window.location.href);
+
+  url.search = "";
+  url.hash = "";
+
+  url.searchParams.set("name", nameInput.value.trim() || "Student Name");
+  url.searchParams.set("id", certificateId);
+  url.searchParams.set("date", dateInput.value);
+
+  return url.href;
+}
+
+function generateQR() {
+  updateCertificate();
+  qrBox.innerHTML = "";
+
+  if (typeof QRCode === "undefined") {
+    statusBox.textContent =
+      "QR library did not load. Check your internet connection and reload.";
+    return;
+  }
+
+  if (window.location.protocol === "file:") {
+    statusBox.textContent =
+      "QR can be generated, but public verification requires uploading this page to an HTTPS website.";
+  } else {
+    statusBox.textContent =
+      "QR generated. Scan it to open this certificate page.";
+  }
+
+  new QRCode(qrBox, {
+    text: certificateURL(),
+    width: 90,
+    height: 90,
+    colorDark: "#13342b",
+    colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.H
+  });
+}
+
+function loadImage(inputId, imageId) {
+  document.getElementById(inputId).addEventListener("change", function () {
+    const file = this.files && this.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      statusBox.textContent = "Please select a valid image file.";
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = function (event) {
+      document.getElementById(imageId).src = event.target.result;
+    };
+
+    reader.readAsDataURL(file);
+  });
+}
+
+nameInput.addEventListener("input", updateCertificate);
+dateInput.addEventListener("change", updateCertificate);
+
+document.getElementById("qrButton").addEventListener("click", generateQR);
+
+loadImage("logoInput", "logo");
+loadImage("photoInput", "studentPhoto");
+
+const params = new URLSearchParams(window.location.search);
+
+if (params.has("name")) nameInput.value = params.get("name");
+if (params.has("date")) dateInput.value = params.get("date");
+
+updateCertificate();
+generateQR();
+</script>
+
+</body>
+</html>
