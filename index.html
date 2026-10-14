@@ -211,63 +211,187 @@ button:focus-visible,input:focus-visible{outline:3px solid #3B887077;outline-off
     url.searchParams.set("certificate", id);
     return url.href;
   }
-  function generateQr() {
-    if (!currentRecordId || !readRecords()[currentRecordId]) {
-      $("status").textContent = "Save the certificate record first, then generate its QR code.";
-      return;
-    }
-    if (typeof QRCode === "undefined") {
-      $("status").textContent = "QR library did not load. Check your internet connection and reload the page.";
-      return;
-    }
-    const target = $("qrcode");
-    target.innerHTML = "";
-    new QRCode(target, {text:makeVerificationUrl(currentRecordId),width:100,height:100,correctLevel:QRCode.CorrectLevel.M});
-    $("status").textContent = "QR code generated for " + currentRecordId + ". Scan it on this browser/device to view the saved record. Online verification requires a hosted database.";
+
+ 
+function generateQr() {
+  if (!currentRecordId) {
+    $("status").textContent =
+      "Save the certificate online first, then generate its QR code.";
+    return;
   }
-  function saveRecord() {
-    try {
-      const records = readRecords();
-      const id = currentRecordId || ("LW-" + new Date().getFullYear() + "-" + Math.random().toString(36).slice(2,8).toUpperCase());
-      const record = makeRecord(id);
-      records[id] = record;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-      currentRecordId = id;
-      $("certificateIdLabel").textContent = "Certificate ID: " + id;
-      $("status").textContent = "Record saved in this browser as " + id + ". This is local storage, not an online database.";
-      const target = $("qrcode");
-      target.innerHTML = "Generate QR after saving";
-      return true;
-    } catch (error) {
-      $("status").textContent = error.name === "QuotaExceededError"
-        ? "Browser storage is full. Try a smaller photo or logo."
-        : (error.message || "Could not save the record in this browser.");
-      return false;
-    }
+
+  if (typeof QRCode === "undefined") {
+    $("status").textContent =
+      "QR library did not load. Check your internet connection and reload the page.";
+    return;
   }
-  function showVerification(id) {
-    $("creatorToolbar").style.display = "none";
-    $("certificate").style.display = "none";
-    const panel = $("verificationView");
-    panel.style.display = "block";
-    const record = readRecords()[id];
+
+  const target = $("qrcode");
+  target.innerHTML = "";
+
+  new QRCode(target, {
+    text: makeVerificationUrl(currentRecordId),
+    width: 100,
+    height: 100,
+    correctLevel: QRCode.CorrectLevel.M
+  });
+
+  $("status").textContent =
+    "QR code generated for " + currentRecordId +
+    ". Scan it on any device to verify the certificate online.";
+}
+
+ 
+async function saveRecord() {
+  const adminPassword = prompt(
+    "Enter the certificate administrator password:"
+  );
+
+  if (adminPassword === null || adminPassword === "") {
+    $("status").textContent = "Saving cancelled.";
+    return false;
+  }
+
+  try {
+    const id = currentRecordId ||
+      ("LW-" + new Date().getFullYear() + "-" +
+       Math.random().toString(36).slice(2, 8).toUpperCase());
+
+    const record = makeRecord(id);
+
+    $("status").textContent = "Saving certificate online...";
+
+    const response = await fetch("/api/certificates", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        adminPassword,
+        record
+      })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || "Could not save certificate online.");
+    }
+
+    currentRecordId = id;
+
+    $("certificateIdLabel").textContent = "Certificate ID: " + id;
+    $("status").textContent =
+      "Certificate saved online successfully! ID: " + id;
+
+    $("qrcode").innerHTML = "Generate QR after saving";
+
+    return true;
+
+  } catch (error) {
+    $("status").textContent =
+      error.message || "Could not save certificate online.";
+
+    return false;
+  }
+}
+
+
+
+async function showVerification(id) {
+  $("creatorToolbar").style.display = "none";
+  $("certificate").style.display = "none";
+
+  const panel = $("verificationView");
+  panel.style.display = "block";
+  panel.replaceChildren();
+
+  const heading = document.createElement("h1");
+  heading.textContent = "Language Whispers Certificate Verification";
+  panel.appendChild(heading);
+
+  const message = document.createElement("p");
+  message.textContent = "Checking certificate online...";
+  panel.appendChild(message);
+
+  try {
+    const response = await fetch(
+      "/api/certificates?id=" + encodeURIComponent(id),
+      { cache: "no-store" }
+    );
+
+    const record = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        record.error || "Certificate could not be verified."
+      );
+    }
+
     panel.replaceChildren();
-    const heading = document.createElement("h1");
-    heading.textContent = "Language Whispers Certificate Verification";
     panel.appendChild(heading);
-    if (!record) {
-      const msg = document.createElement("p");
-      msg.className = "not-found";
-      msg.textContent = "Certificate record not found in this browser. For cross-device verification, this certificate must be stored in an online database.";
-      panel.appendChild(msg);
-      return;
+
+    const status = document.createElement("p");
+    status.className =
+      record.status === "valid" ? "verified" : "not-found";
+    status.textContent =
+      record.status === "valid"
+        ? "Certificate verified online"
+        : "This certificate has been revoked.";
+    panel.appendChild(status);
+
+    const add = (label, value) => {
+      const p = document.createElement("p");
+      const strong = document.createElement("strong");
+      strong.textContent = label + ": ";
+      p.append(
+        strong,
+        document.createTextNode(String(value ?? ""))
+      );
+      panel.appendChild(p);
+    };
+
+    add("Certificate ID", record.id);
+    add("Student", record.name);
+    add("Issued on", formatDate(record.date));
+
+    Object.entries(record.scores || {}).forEach(([level, result]) => {
+      add(
+        level,
+        `${result.score} / ${result.total} (${percent(result.score, result.total)})`
+      );
+    });
+
+    if (record.photo) {
+      const photo = document.createElement("img");
+      photo.src = record.photo;
+      photo.alt = "Student photo";
+      photo.style.maxWidth = "160px";
+      photo.style.borderRadius = "10px";
+      panel.appendChild(photo);
     }
-    const status = document.createElement("p"); status.className = "verified"; status.textContent = "Record found in this browser"; panel.appendChild(status);
-    const add = (label, value) => { const p=document.createElement("p"); const strong=document.createElement("strong"); strong.textContent=label+": "; p.append(strong,document.createTextNode(value)); panel.appendChild(p); };
-    add("Certificate ID",record.id); add("Student",record.name); add("Issued on",formatDate(record.date));
-    Object.entries(record.scores).forEach(([level,result]) => add(level,`${result.score} / ${result.total} (${percent(result.score,result.total)})`));
-    const note=document.createElement("p"); note.textContent="This record is stored locally in the browser that created it. It has not been verified against a central online database."; panel.appendChild(note);
+
+    const note = document.createElement("p");
+    note.textContent =
+      "This certificate was checked against the Language Whispers online database.";
+    panel.appendChild(note);
+
+  } catch (error) {
+    panel.replaceChildren();
+    panel.appendChild(heading);
+
+    const msg = document.createElement("p");
+    msg.className = "not-found";
+    msg.textContent =
+      error.message ||
+      "Could not verify certificate online. Please try again.";
+    panel.appendChild(msg);
   }
+}
+
+
+
+ 
   ["studentName","certificateDate","a1Score","a2Score","b1Score"].forEach(id => {
     $(id).addEventListener("input", () => { updateCertificate(); if(currentRecordId) $("status").textContent="Details changed. Save Record again to update the saved record."; });
   });
