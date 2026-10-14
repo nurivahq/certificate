@@ -1,5 +1,7 @@
 
-export default async function handler(req, res) {
+
+module.exports = async function handler(req, res) {
+
   const supabaseUrl = process.env.SUPABASE_URL;
   const secretKey = process.env.SUPABASE_SECRET_KEY;
   const adminPassword = process.env.CERTIFICATE_ADMIN_PASSWORD;
