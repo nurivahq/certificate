@@ -152,8 +152,11 @@ export default async function handler(req, res) {
       );
 
       if (!response.ok) {
+        const errorDetails = await response.text();
+
         return res.status(502).json({
-          error: "Supabase could not save the certificate."
+          error: "Supabase could not save the certificate.",
+          details: errorDetails
         });
       }
 
@@ -161,15 +164,10 @@ export default async function handler(req, res) {
         success: true,
         id
       });
-    } catch {
+    } catch (error) {
       return res.status(500).json({
-        error: "Could not save the certificate."
+        error: "Could not save the certificate.",
+        details: error.message
       });
     }
-  }
 
-  res.setHeader("Allow", "GET, POST");
-  return res.status(405).json({
-    error: "Method not allowed."
-  });
-}
