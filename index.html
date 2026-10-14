@@ -1,998 +1,306 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#13342B">
-  <title>Language Whispers Certificate</title>
-
-  <!-- QR code generator -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
-  <style>
-    :root {
-      --green: #13342B;
-      --green-light: #3B8870;
-      --gold: #C9A75D;
-      --cream: #FBF8EF;
-      --text: #26352E;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      padding: 24px;
-      background: #e9eee9;
-      color: var(--text);
-      font-family: Georgia, "Times New Roman", serif;
-    }
-
-    .toolbar {
-      max-width: 1100px;
-      margin: 0 auto 24px;
-      padding: 22px;
-      background: white;
-      border-radius: 14px;
-      box-shadow: 0 5px 22px #13342b12;
-      font-family: Arial, sans-serif;
-    }
-
-    .toolbar h1 {
-      margin: 0 0 8px;
-      color: var(--green);
-      font-size: 25px;
-    }
-
-    .toolbar p {
-      color: #64736a;
-      line-height: 1.6;
-      font-size: 14px;
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 16px;
-      margin-top: 20px;
-    }
-
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 7px;
-    }
-
-    .field label {
-      font-size: 13px;
-      font-weight: bold;
-      color: var(--green);
-    }
-
-    input {
-      width: 100%;
-      min-width: 0;
-      padding: 12px;
-      border: 1px solid #d5ded7;
-      border-radius: 8px;
-      font-size: 14px;
-      background: white;
-    }
-
-    input:focus {
-      outline: 2px solid #3B887055;
-      border-color: var(--green-light);
-    }
-
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 20px;
-    }
-
-    button {
-      padding: 12px 17px;
-      border: 0;
-      border-radius: 8px;
-      background: var(--green);
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      font-size: 13px;
-    }
-
-    button:hover {
-      background: var(--green-light);
-    }
-
-    button.secondary {
-      background: #e8efe9;
-      color: var(--green);
-      border: 1px solid #d5ded7;
-    }
-
-    #status {
-      margin-top: 14px;
-      font-size: 13px;
-      line-height: 1.6;
-      color: var(--green);
-      overflow-wrap: anywhere;
-    }
-
-    .certificate {
-      position: relative;
-      width: 100%;
-      max-width: 1100px;
-      min-height: 760px;
-      margin: 0 auto;
-      padding: 22px;
-      background: var(--cream);
-      border: 7px double var(--gold);
-      box-shadow: 0 12px 35px #13342b1c;
-      overflow: hidden;
-    }
-
-    .certificate-inner {
-      position: relative;
-      min-height: 700px;
-      padding: 28px 35px;
-      border: 1px solid #d9c58f;
-      text-align: center;
-    }
-
-    .top-label {
-      color: var(--green-light);
-      text-transform: uppercase;
-      letter-spacing: 5px;
-      font: bold 12px Arial, sans-serif;
-    }
-
-    .brand {
-      margin: 12px 0 5px;
-      color: var(--green);
-      font-size: clamp(25px, 4vw, 39px);
-      font-weight: bold;
-      letter-spacing: 1px;
-    }
-
-    .brand-line {
-      width: 100px;
-      height: 3px;
-      margin: 12px auto 20px;
-      background: var(--gold);
-    }
-
-    .certificate-title {
-      margin: 0;
-      color: var(--green);
-      font-size: clamp(27px, 4vw, 43px);
-      letter-spacing: 2px;
-      text-transform: uppercase;
-    }
-
-    .subtitle {
-      margin: 12px 0 18px;
-      color: #66776a;
-      font-size: 15px;
-      font-style: italic;
-    }
-
-    .award-text {
-      margin: 18px 0 12px;
-      font-size: 17px;
-    }
-
-    .student-photo {
-      display: block;
-      width: 118px;
-      height: 118px;
-      margin: 0 auto 12px;
-      border: 4px solid var(--gold);
-      border-radius: 50%;
-      background: #edf0e8;
-      object-fit: cover;
-    }
-
-    .student-name {
-      margin: 8px auto;
-      color: var(--green);
-      font-size: clamp(27px, 4vw, 39px);
-      font-weight: bold;
-      overflow-wrap: anywhere;
-    }
-
-    .name-line {
-      width: 70%;
-      max-width: 450px;
-      height: 1px;
-      margin: 10px auto 16px;
-      background: var(--gold);
-    }
-
-    .description {
-      max-width: 650px;
-      margin: 0 auto;
-      color: #4b5b50;
-      font-size: 15px;
-      line-height: 1.8;
-    }
-
-    .scores {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 15px;
-      max-width: 720px;
-      margin: 25px auto;
-    }
-
-    .score-card {
-      padding: 17px 8px;
-      border: 1px solid #dfd2a8;
-      background: #fffdf6;
-    }
-
-    .score-level {
-      color: var(--green-light);
-      font: bold 12px Arial, sans-serif;
-      letter-spacing: 2px;
-    }
-
-    .score-number {
-      margin-top: 9px;
-      color: var(--green);
-      font-size: 25px;
-      font-weight: bold;
-    }
-
-    .score-result {
-      margin-top: 5px;
-      color: #758075;
-      font: 11px Arial, sans-serif;
-    }
-
-
-.bottom-section {
-  grid-template-columns: 1fr 1fr;
-  align-items: center;
-  justify-items: center;
-  gap: 20px 12px;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#13342B">
+<title>Language Whispers Certificate Creator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--green:#13342B;--green-light:#3B8870;--gold:#C9A75D;--cream:#FBF8EF;--text:#26352E}
+*{box-sizing:border-box}
+body{margin:0;padding:24px;background:#e9eee9;color:var(--text);font-family:Georgia,"Times New Roman",serif}
+.toolbar{max-width:1100px;margin:0 auto 24px;padding:22px;background:white;border-radius:14px;box-shadow:0 5px 22px #13342b12;font-family:Arial,sans-serif}
+.toolbar h1{margin:0 0 8px;color:var(--green);font-size:25px}
+.toolbar p{line-height:1.5}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:20px}
+.field{display:flex;flex-direction:column;gap:7px;min-width:0}
+.field label{font-size:13px;font-weight:bold;color:var(--green)}
+input{width:100%;min-width:0;padding:12px;border:1px solid #d5ded7;border-radius:8px;font-size:14px}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+button{padding:12px 17px;border:0;border-radius:8px;background:var(--green);color:white;font-weight:bold;cursor:pointer}
+button:hover{background:var(--green-light)}
+button.secondary{background:#e8efe9;color:var(--green);border:1px solid #d5ded7}
+button:focus-visible,input:focus-visible{outline:3px solid #3B887077;outline-offset:2px}
+#status{margin-top:14px;font-size:13px;line-height:1.5;color:var(--green);overflow-wrap:anywhere}
+.certificate{position:relative;width:100%;max-width:1100px;margin:0 auto;padding:22px;background:var(--cream);border:7px double var(--gold);box-shadow:0 12px 35px #13342b1c}
+.certificate-inner{position:relative;padding:28px 35px;border:1px solid #d9c58f;text-align:center}
+.brand{margin:12px 0 5px;color:var(--green);font-size:clamp(26px,4vw,39px);font-weight:bold}
+.brand-line{width:100px;height:3px;margin:12px auto 20px;background:var(--gold)}
+.certificate-title{margin:0;color:var(--green);font-size:clamp(25px,4.5vw,43px);text-transform:uppercase}
+.award-text{margin:18px 0}
+.student-photo{display:block;width:118px;height:118px;margin:0 auto 12px;border:4px solid var(--gold);border-radius:50%;object-fit:cover;background:#fff}
+.student-name{margin:8px auto;color:var(--green);font-size:clamp(26px,4vw,39px);font-weight:bold;overflow-wrap:anywhere}
+.name-line{width:70%;height:1px;margin:10px auto 16px;background:var(--gold)}
+.scores{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;max-width:720px;margin:25px auto}
+.score-card{padding:17px 8px;border:1px solid #dfd2a8;background:#fffdf6;min-width:0}
+.score-card .level{font-size:13px;letter-spacing:1px;color:var(--green)}
+.score-card .score{display:block;margin:8px 0 4px;font-size:clamp(18px,2.5vw,25px);color:var(--green)}
+.score-card .percentage{font: bold 17px Arial,sans-serif;color:var(--green-light)}
+.bottom-section{display:grid;grid-template-columns:1fr 1.5fr 1fr;align-items:center;justify-items:center;gap:20px;width:100%;margin-top:35px;padding-top:20px}
+.logo-area,.qr-area{min-width:0;text-align:center}
+.logo-area img{width:85px;height:85px;border-radius:50%;object-fit:contain}
+.logo-caption{color:var(--green);font:bold 10px Arial,sans-serif;margin-top:5px}
+.signature{text-align:center;border-top:1px solid var(--gold);padding-top:15px;width:80%;font-size:13px}
+.signature strong{display:block;font-size:18px;color:var(--green)}
+.signature-label{font-size:10px;color:var(--green-light);letter-spacing:2px;margin-bottom:5px}
+#qrcode{padding:5px;background:white;border:1px solid #ddd;display:inline-flex;align-items:center;justify-content:center;min-height:110px;min-width:110px}
+#qrcode img,#qrcode canvas{max-width:100%;height:auto}
+.qr-caption{font:bold 9px Arial,sans-serif;color:#617066;margin-top:5px}
+.certificate-date{margin-top:25px;font-size:12px}
+#verificationView{display:none;max-width:800px;margin:24px auto;padding:24px;background:var(--cream);border:5px double var(--gold);text-align:center}
+#verificationView h1{color:var(--green)}
+#verificationView .verified{color:#207448;font-weight:bold}
+#verificationView .not-found{color:#a22;font-weight:bold}
+@media(max-width:650px){
+ body{padding:10px}
+ .toolbar{padding:16px}
+ .form-grid{grid-template-columns:1fr}
+ .certificate{padding:9px;border-width:4px}
+ .certificate-inner{padding:18px 12px}
+ .scores{grid-template-columns:1fr;gap:9px;margin:18px auto}
+ .score-card{padding:12px}
+ .bottom-section{grid-template-columns:1fr;gap:22px;margin-top:25px}
+ .signature{grid-row:2;width:90%}
+ .logo-area{grid-row:1}
+ .qr-area{grid-row:3}
+ .name-line{width:85%}
 }
-
-.logo-area {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
+@page{size:A4 landscape;margin:8mm}
+@media print{
+ body{padding:0;background:white;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ .toolbar,#verificationView{display:none!important}
+ .certificate{width:100%;max-width:none;min-height:0;margin:0;padding:10px;border-width:5px;box-shadow:none;break-inside:avoid}
+ .certificate-inner{min-height:0;padding:14px 24px}
+ .brand{font-size:28px;margin-top:0}
+ .brand-line{margin:8px auto 12px}
+ .certificate-title{font-size:30px}
+ .award-text{margin:10px 0}
+ .student-photo{width:80px;height:80px;margin-bottom:6px}
+ .student-name{font-size:28px;margin:5px auto}
+ .name-line{margin:6px auto 9px}
+ .scores{margin:12px auto;gap:10px}
+ .score-card{padding:10px 6px}
+ .bottom-section{margin-top:16px;padding-top:10px;gap:12px}
+ .logo-area img{width:60px;height:60px}
+ #qrcode{min-height:84px;min-width:84px}
+ #qrcode img,#qrcode canvas{width:74px!important;height:74px!important}
+ .certificate-date{margin-top:12px}
 }
-
-.signature {
-  grid-column: 1 / -1;
-  grid-row: 2;
-}
-
-.qr-area {
-  grid-column: 2;
-  grid-row: 1;
-}
-
-    .logo-area img {
-      display: block;
-      width: 78px;
-      height: 78px;
-      margin: 0 auto 8px;
-      object-fit: contain;
-    }
-
-      .logo-caption {
-      color: var(--green);
-      font: bold 10px Arial, sans-serif;
-      letter-spacing: 1px;
-      text-align: center;
-    }
-
-    .signature {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      padding: 12px 5px;
-      border-top: 1px solid var(--gold);
-      color: #536357;
-      font: 12px/1.7 Arial, sans-serif;
-      text-align: center;
-    }
-
-   .signature::before {
-  content: "AUTHORIZED BY";
-  display: block;
-  margin-bottom: 8px;
-  color: var(--green-light);
-  font: bold 9px Arial, sans-serif;
-  letter-spacing: 1.5px;
-}
-
-   .signature strong {
-  display: block;
-  color: var(--green);
-  font: bold 16px Georgia, "Times New Roman", serif;
-  text-align: center;
-}
-
-   .qr-area {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  text-align: center;
-}
-
-    #qrcode {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 105px;
-      height: 105px;
-      padding: 5px;
-      background: white;
-      border: 1px solid #ddd;
-    }
-
-    #qrcode img,
-    #qrcode canvas {
-      display: block;
-      max-width: 100%;
-      max-height: 100%;
-    }
-
-    .qr-caption {
-      max-width: 120px;
-      color: #617066;
-      font: bold 9px/1.5 Arial, sans-serif;
-      letter-spacing: 1px;
-      text-align: center;
-    }
-
-    .certificate-date {
-      margin-top: 24px;
-      padding-top: 12px;
-      border-top: 1px solid #e7dec4;
-      color: #69776c;
-      font: 12px/1.6 Arial, sans-serif;
-      text-align: center;
-    }
-
-    .certificate-date span {
-      color: var(--green);
-      font-weight: bold;
-    }
-
-    .footer-text {
-      margin-top: 12px;
-      color: var(--green-light);
-      font-size: 13px;
-      font-style: italic;
-      text-align: center;
-    }
-
-    .public-view .toolbar {
-      display: none;
-    }
-
-    .public-view body {
-      padding-top: 20px;
-    }
-
-    .public-view .certificate {
-      max-width: 1100px;
-    }
-
-    .public-view #qrcode {
-      display: none;
-    }
-
-    .public-view .qr-caption {
-      display: none;
-    }
-
-    @media (max-width: 650px) {
-      body {
-        padding: 10px;
-      }
-
-      .toolbar {
-        padding: 16px;
-      }
-
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .certificate {
-        padding: 10px;
-        border-width: 4px;
-        min-height: auto;
-      }
-
-      .certificate-inner {
-        padding: 22px 12px;
-        min-height: auto;
-      }
-
-      .top-label {
-        letter-spacing: 3px;
-      }
-
-      .scores {
-        gap: 6px;
-      }
-
-      .score-card {
-        padding: 12px 4px;
-      }
-
-      .score-number {
-        font-size: 19px;
-      }
-
-      .score-level {
-        letter-spacing: 1px;
-        font-size: 10px;
-      }
-
-      .bottom-section {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        align-items: end;
-        gap: 24px 12px;
-        margin-top: 25px;
-        padding-top: 18px;
-      }
-
-      .logo-area {
-        grid-column: 1;
-        grid-row: 1;
-      }
-
-      .signature {
-        grid-column: 2;
-        grid-row: 1;
-      }
-
-      .qr-area {
-        grid-column: 1 / -1;
-        grid-row: 2;
-      }
-
-      .logo-area img {
-        width: 65px;
-        height: 65px;
-      }
-
-      #qrcode {
-        width: 100px;
-        height: 100px;
-      }
-
-      .description {
-        font-size: 13px;
-      }
-    }
-
-    @page {
-      size: A4 landscape;
-      margin: 8mm;
-    }
-
-    @media print {
-      body {
-        margin: 0;
-        padding: 0;
-        background: white;
-      }
-
-      .toolbar {
-        display: none !important;
-      }
-
-      .certificate {
-        width: 100%;
-        max-width: none;
-        min-height: 0;
-        margin: 0;
-        padding: 10px;
-        border: 5px double var(--gold);
-        box-shadow: none;
-        break-inside: avoid;
-      }
-
-      .certificate-inner {
-        min-height: 0;
-        padding: 18px 25px;
-      }
-
-      .brand {
-        font-size: 31px;
-      }
-
-      .certificate-title {
-        font-size: 34px;
-      }
-
-      .student-photo {
-        width: 95px;
-        height: 95px;
-      }
-
-      .student-name {
-        font-size: 31px;
-      }
-
-      .scores {
-        margin: 17px auto;
-      }
-
-      .score-card {
-        padding: 11px 6px;
-      }
-
-      .score-number {
-        font-size: 22px;
-      }
-
-          .bottom-section {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      align-items: center;
-      justify-items: center;
-      gap: 20px;
-      width: 100%;
-      max-width: 780px;
-      margin: 30px auto 0;
-      padding-top: 20px;
-    }
-
-      .logo-area img {
-        width: 65px;
-        height: 65px;
-      }
-
-      #qrcode {
-        width: 85px;
-        height: 85px;
-      }
-
-      .signature strong {
-        font-size: 15px;
-      }
-
-      .footer-text {
-        margin-top: 10px;
-      }
-
-      .certificate-date {
-        margin-top: 14px;
-        padding-top: 9px;
-      }
-
-      * {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-      }
-    }
-
-  </style>
+</style>
 </head>
-
 <body>
-  <section class="toolbar">
-    <h1>Language Whispers — Certificate Creator</h1>
-    <p>
-      Enter the student's information, add the logo and photo, generate the QR
-      code, and print or save the certificate as a PDF.
-    </p>
+<section class="toolbar" id="creatorToolbar">
+  <h1>Language Whispers — Certificate Creator</h1>
+  <p>Enter the student's details, upload the images, then save the record before generating its QR code. Saved records are kept in this browser only.</p>
+  <div class="form-grid">
+    <div class="field"><label for="studentName">Student's full name</label><input id="studentName" type="text" value="Student Name" maxlength="120"></div>
+    <div class="field"><label for="certificateDate">Certificate date</label><input id="certificateDate" type="date" value="2026-10-14"></div>
+    <div class="field"><label for="a1Score">A1 score (out of 20)</label><input id="a1Score" type="number" min="0" max="20" step="1" value="20"></div>
+    <div class="field"><label for="a2Score">A2 score (out of 20)</label><input id="a2Score" type="number" min="0" max="20" step="1" value="18"></div>
+    <div class="field"><label for="b1Score">B1 score (out of 29)</label><input id="b1Score" type="number" min="0" max="29" step="1" value="26"></div>
+    <div class="field"><label for="logoUpload">Upload logo</label><input id="logoUpload" type="file" accept="image/*"></div>
+    <div class="field"><label for="photoUpload">Upload student photo</label><input id="photoUpload" type="file" accept="image/*"></div>
+  </div>
+  <div class="actions">
+    <button type="button" id="saveBtn">Save Record</button>
+    <button type="button" id="generateBtn">Generate QR Code</button>
+    <button type="button" class="secondary" id="printBtn">Print / Save PDF</button>
+  </div>
+  <div id="status" role="status" aria-live="polite">Ready. Update the details and save the record.</div>
+</section>
 
-    <div class="form-grid">
-      <div class="field">
-        <label for="studentName">Student's full name</label>
-        <input
-          id="studentName"
-          type="text"
-          placeholder="Enter student's full name"
-          value="Student Name"
-        >
-      </div>
-
-      <div class="field">
-        <label for="certificateDate">Certificate date</label>
-        <input id="certificateDate" type="date" value="2026-10-14">
-      </div>
-
-      <div class="field">
-        <label for="logoUpload">Upload Language Whispers logo</label>
-        <input id="logoUpload" type="file" accept="image/*">
-      </div>
-
-      <div class="field">
-        <label for="photoUpload">Upload student's picture</label>
-        <input id="photoUpload" type="file" accept="image/*">
-      </div>
+<main class="certificate" id="certificate">
+  <div class="certificate-inner">
+    <div class="brand">Language Whispers</div>
+    <div class="brand-line"></div>
+    <h1 class="certificate-title">Certificate of Achievement</h1>
+    <p class="award-text">This certificate is proudly presented to</p>
+    <img id="displayPhoto" class="student-photo" alt="Student portrait" src="student.jpg">
+    <div class="student-name" id="displayName">Student Name</div>
+    <div class="name-line"></div>
+    <p>In recognition of dedication and achievement in the Turkish language programme.</p>
+    <section class="scores" aria-label="Language level results">
+      <div class="score-card"><div class="level">A1 LEVEL</div><strong class="score" id="a1Display">20 / 20</strong><div class="percentage" id="a1Percent">100%</div></div>
+      <div class="score-card"><div class="level">A2 LEVEL</div><strong class="score" id="a2Display">18 / 20</strong><div class="percentage" id="a2Percent">90%</div></div>
+      <div class="score-card"><div class="level">B1 LEVEL</div><strong class="score" id="b1Display">26 / 29</strong><div class="percentage" id="b1Percent">89.66%</div></div>
+    </section>
+    <div class="bottom-section">
+      <div class="logo-area"><img id="displayLogo" src="lan.png" alt="Language Whispers logo"><div class="logo-caption">LANGUAGE WHISPERS</div></div>
+      <div class="signature"><div class="signature-label">AUTHORIZED BY</div><strong>Sumeya Anwar</strong>Founder / Developer</div>
+      <div class="qr-area"><div id="qrcode" aria-label="Certificate verification QR code">Save record first</div><div class="qr-caption">SCAN TO VIEW</div></div>
     </div>
+    <div class="certificate-date">Issued on: <span id="displayDate">14 October 2026</span><br><span id="certificateIdLabel"></span></div>
+  </div>
+</main>
 
-    <div class="actions">
-      <button type="button" id="generateBtn">Generate QR Code</button>
-      <button type="button" class="secondary" id="saveBtn">
-        Save Certificate Record
-      </button>
-      <button type="button" id="printBtn">Print / Save as PDF</button>
-    </div>
+<section id="verificationView" aria-live="polite"></section>
+<script>
+(() => {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const STORAGE_KEY = "languageWhispersCertificateRecords";
+  let currentRecordId = null;
+  let logoData = "";
+  let photoData = "";
 
-    <div id="status" role="status" aria-live="polite">
-      Enter the student's details to begin.
-    </div>
-  </section>
-
-  <main class="certificate">
-    <div class="certificate-inner">
-      <div class="top-label">Language Learning Achievement</div>
-
-      <div class="brand">Language Whispers</div>
-      <div class="brand-line"></div>
-
-      <h1 class="certificate-title">Certificate of Achievement</h1>
-
-      <p class="subtitle">Turkish Language Programme</p>
-
-      <p class="award-text">This certificate is proudly presented to</p>
-
-      <img
-        id="displayPhoto"
-        class="student-photo"
-        src="student.jpg"
-        alt="Student picture"
-      >
-
-      <div class="student-name" id="displayName">Student Name</div>
-      <div class="name-line"></div>
-
-      <p class="description">
-        In recognition of dedication, effort, and achievement in the Turkish
-        language programme offered by Language Whispers. The following results
-        reflect the student's performance across the completed levels.
-      </p>
-
-      <section class="scores" aria-label="Language test scores">
-        <div class="score-card">
-          <div class="score-level">A1 LEVEL</div>
-          <div class="score-number">20 / 20</div>
-          <div class="score-result">Excellent achievement</div>
-        </div>
-
-        <div class="score-card">
-          <div class="score-level">A2 LEVEL</div>
-          <div class="score-number">18 / 20</div>
-          <div class="score-result">Very good achievement</div>
-        </div>
-
-        <div class="score-card">
-          <div class="score-level">B1 LEVEL</div>
-          <div class="score-number">26 / 29</div>
-          <div class="score-result">Very good achievement</div>
-        </div>
-      </section>
-
-      <div class="bottom-section">
-        <div class="logo-area">
-          <img
-            id="displayLogo"
-            src="lan.png"
-            alt="Language Whispers logo"
-          >
-          <div class="logo-caption">LANGUAGE WHISPERS</div>
-        </div>
-
-        <div class="signature">
-          <strong>Sumeya Anwar</strong>
-          Founder / Developer
-        </div>
-
-        <div class="qr-area">
-          <div id="qrcode"></div>
-          <div class="qr-caption">SCAN TO VIEW CERTIFICATE</div>
-        </div>
-      </div>
-
-      <div class="certificate-date">
-        Issued on: <span id="displayDate">14 October 2026</span>
-      </div>
-
-      <div class="footer-text">
-        Whisper today, speak loud tomorrow.
-      </div>
-    </div>
-  </main>
-
-  <script>
-    "use strict";
-
-    const DEFAULT_LOGO = "lan.png";
-    const DEFAULT_PHOTO = "student.jpg";
-
-    const DEFAULT_ID = "LW-TUR-2026-001";
-
-    const SCORES = {
-      A1: "20 / 20",
-      A2: "18 / 20",
-      B1: "26 / 29"
+  function formatDate(value) {
+    if (!value) return "";
+    const date = new Date(value + "T12:00:00");
+    return Number.isNaN(date.getTime()) ? "" : date.toLocaleDateString("en-GB", {day:"numeric",month:"long",year:"numeric"});
+  }
+  function percent(score, total) {
+    const value = score / total * 100;
+    return Number.isInteger(value) ? value.toFixed(0) + "%" : value.toFixed(2).replace(/0+$/,"").replace(/\.$/,"") + "%";
+  }
+  function getScore(inputId, max) {
+    const raw = $(inputId).value.trim();
+    if (raw === "") throw new Error("Please enter all three scores.");
+    const value = Number(raw);
+    if (!Number.isInteger(value) || value < 0 || value > max) throw new Error("Scores must be whole numbers within their allowed maximum.");
+    return value;
+  }
+  function readRecords() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+      return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+    } catch { return {}; }
+  }
+  function updateCertificate() {
+    $("displayName").textContent = $("studentName").value.trim() || "Student Name";
+    $("displayDate").textContent = formatDate($("certificateDate").value);
+    try {
+      const a1 = getScore("a1Score",20), a2 = getScore("a2Score",20), b1 = getScore("b1Score",29);
+      $("a1Display").textContent = `${a1} / 20`; $("a1Percent").textContent = percent(a1,20);
+      $("a2Display").textContent = `${a2} / 20`; $("a2Percent").textContent = percent(a2,20);
+      $("b1Display").textContent = `${b1} / 29`; $("b1Percent").textContent = percent(b1,29);
+    } catch { /* Keep the last valid displayed scores while the user edits. */ }
+  }
+  function makeRecord(id) {
+    const name = $("studentName").value.trim();
+    const date = $("certificateDate").value;
+    if (!name) throw new Error("Enter the student's full name.");
+    if (!date) throw new Error("Choose the certificate date.");
+    return {
+      id, name, date,
+      scores: {
+        A1: {score:getScore("a1Score",20), total:20},
+        A2: {score:getScore("a2Score",20), total:20},
+        B1: {score:getScore("b1Score",29), total:29}
+      },
+      logo: logoData, photo: photoData,
+      issuedAt: new Date().toISOString()
     };
-
-    const $ = (id) => document.getElementById(id);
-
-    let uploadedLogoData = null;
-    let uploadedPhotoData = null;
-    let currentCertificateId = DEFAULT_ID;
-
-    function formatDate(value) {
-      if (!value) return "";
-
-      const date = new Date(value + "T12:00:00");
-
-      if (Number.isNaN(date.getTime())) {
-        return value;
-      }
-
-      return date.toLocaleDateString("en-GB", {
-        day: "numeric",
-        month: "long",
-        year: "numeric"
-      });
-    }
-
-    function setStatus(message) {
-      $("status").textContent = message;
-    }
-
-    function updateCertificate() {
-      const name = $("studentName").value.trim() || "Student Name";
-      const date = $("certificateDate").value;
-
-      $("displayName").textContent = name;
-      $("displayDate").textContent = formatDate(date);
-    }
-
-    function readImageFile(file, callback) {
-      if (!file) return;
-
-      if (!file.type.startsWith("image/")) {
-        setStatus("Please select a valid image file.");
-        return;
-      }
-
-      const reader = new FileReader();
-
-      reader.onload = () => callback(reader.result);
-
-      reader.onerror = () => {
-        setStatus("The image could not be read. Please try another file.");
-      };
-
-      reader.readAsDataURL(file);
-    }
-
-    $("studentName").addEventListener("input", updateCertificate);
-    $("certificateDate").addEventListener("change", updateCertificate);
-
-    $("logoUpload").addEventListener("change", (event) => {
-      const file = event.target.files[0];
-
-      readImageFile(file, (imageData) => {
-        uploadedLogoData = imageData;
-        $("displayLogo").src = imageData;
-        setStatus(
-          "Logo preview updated. For the scanned certificate, host the logo online as lan.png."
-        );
-      });
-    });
-
-    $("photoUpload").addEventListener("change", (event) => {
-      const file = event.target.files[0];
-
-      readImageFile(file, (imageData) => {
-        uploadedPhotoData = imageData;
-        $("displayPhoto").src = imageData;
-        setStatus(
-          "Student photo preview updated. For the scanned certificate, host the photo online as student.jpg."
-        );
-      });
-    });
-
-    function createCertificateUrl(id, name, date) {
-      const url = new URL(window.location.href);
-
-      url.search = "";
-      url.hash = "";
-
-      url.searchParams.set("id", id);
-      url.searchParams.set("name", name);
-      url.searchParams.set("date", date);
-
-      return url.href;
-    }
-
-    function makeQR(id, name, date) {
-      const qrContainer = $("qrcode");
-      qrContainer.innerHTML = "";
-
-      if (typeof QRCode === "undefined") {
-        setStatus(
-          "QR generator did not load. Check your internet connection and reload the page."
-        );
-        return false;
-      }
-
-      if (
-        window.location.protocol === "file:" ||
-        !window.location.hostname
-      ) {
-        setStatus(
-          "Publish this HTML online first. Then open the published page and generate the QR code so it can be scanned on another phone."
-        );
-        return false;
-      }
-
-      const certificateUrl = createCertificateUrl(id, name, date);
-
-      try {
-        new QRCode(qrContainer, {
-          text: certificateUrl,
-          width: 180,
-          height: 180,
-          colorDark: "#13342B",
-          colorLight: "#FFFFFF",
-          correctLevel: QRCode.CorrectLevel.H
-        });
-
-        setStatus(
-          "QR code generated. Scan it with another device to check the public certificate page."
-        );
-
-        return true;
-      } catch (error) {
-        console.error("QR generation failed:", error);
-
-        setStatus(
-          "Could not generate the QR code. Check your internet connection and try again."
-        );
-
-        return false;
-      }
-    }
-
-    $("generateBtn").addEventListener("click", () => {
-      const name = $("studentName").value.trim();
-      const date = $("certificateDate").value;
-
-      if (!name) {
-        setStatus("Please enter the student's full name.");
-        $("studentName").focus();
-        return;
-      }
-
-      if (!date) {
-        setStatus("Please select the certificate date.");
-        $("certificateDate").focus();
-        return;
-      }
-
-      currentCertificateId =
-        "LW-TUR-" + date.replaceAll("-", "") + "-" +
-        name.trim().replace(/\s+/g, "-").toUpperCase().slice(0, 20);
-
-      updateCertificate();
-      makeQR(currentCertificateId, name, date);
-    });
-
-    $("saveBtn").addEventListener("click", () => {
-      const name = $("studentName").value.trim();
-      const date = $("certificateDate").value;
-
-      if (!name || !date) {
-        setStatus("Enter the student's name and certificate date first.");
-        return;
-      }
-
-      const record = {
-        certificateId: currentCertificateId,
-        name: name,
-        date: date,
-        scores: SCORES,
-        programme: "Turkish Language Programme",
-        issuer: "Language Whispers",
-        founder: "Sumeya Anwar",
-        logo: DEFAULT_LOGO,
-        photo: DEFAULT_PHOTO,
-        certificateUrl: createCertificateUrl(
-          currentCertificateId,
-          name,
-          date
-        ),
-        createdAt: new Date().toISOString()
-      };
-
-      const blob = new Blob(
-        [JSON.stringify(record, null, 2)],
-        { type: "application/json" }
-      );
-
-      const downloadUrl = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-
-      link.href = downloadUrl;
-      link.download = currentCertificateId + ".json";
-
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-
-      URL.revokeObjectURL(downloadUrl);
-
-      setStatus(
-        "Certificate record downloaded as a JSON file. This saves a local record; it does not upload or register the certificate online."
-      );
-    });
-
-    $("printBtn").addEventListener("click", () => {
-      updateCertificate();
-      window.print();
-    });
-
-    function loadPublicCertificate() {
-      const params = new URLSearchParams(window.location.search);
-      const id = params.get("id");
-
-      if (!id) return;
-
-      const name = params.get("name");
-      const date = params.get("date");
-
-      document.body.classList.add("public-view");
-
-      if (!name || !date) {
-        document.querySelector(".certificate").innerHTML =
-          '<div style="padding:40px;text-align:center;font-family:Arial,sans-serif">' +
-          '<h1>Certificate information is incomplete</h1>' +
-          '<p>Please use a valid Language Whispers certificate link.</p>' +
-          "</div>";
-
-        return;
-      }
-
-      currentCertificateId = id;
-
-      $("studentName").value = name;
-      $("certificateDate").value = date;
-
-      $("displayName").textContent = name;
-      $("displayDate").textContent = formatDate(date);
-
-      /*
-        Public view uses hosted images:
-        lan.png and student.jpg.
-        Local file uploads do not automatically transfer to another device.
-      */
-      $("displayLogo").src = DEFAULT_LOGO;
-      $("displayPhoto").src = DEFAULT_PHOTO;
-
-      document.title = "Language Whispers Certificate — " + name;
-    }
-
+  }
+  function renderRecord(record) {
+    $("studentName").value = record.name;
+    $("certificateDate").value = record.date;
+    $("a1Score").value = record.scores.A1.score;
+    $("a2Score").value = record.scores.A2.score;
+    $("b1Score").value = record.scores.B1.score;
+    logoData = record.logo || ""; photoData = record.photo || "";
+    if (logoData) $("displayLogo").src = logoData;
+    if (photoData) $("displayPhoto").src = photoData;
     updateCertificate();
-    loadPublicCertificate();
-  </script>
+    $("certificateIdLabel").textContent = "Certificate ID: " + record.id;
+  }
+  function makeVerificationUrl(id) {
+    const url = new URL(window.location.href);
+    url.search = "";
+    url.hash = "";
+    url.searchParams.set("certificate", id);
+    return url.href;
+  }
+  function generateQr() {
+    if (!currentRecordId || !readRecords()[currentRecordId]) {
+      $("status").textContent = "Save the certificate record first, then generate its QR code.";
+      return;
+    }
+    if (typeof QRCode === "undefined") {
+      $("status").textContent = "QR library did not load. Check your internet connection and reload the page.";
+      return;
+    }
+    const target = $("qrcode");
+    target.innerHTML = "";
+    new QRCode(target, {text:makeVerificationUrl(currentRecordId),width:100,height:100,correctLevel:QRCode.CorrectLevel.M});
+    $("status").textContent = "QR code generated for " + currentRecordId + ". Scan it on this browser/device to view the saved record. Online verification requires a hosted database.";
+  }
+  function saveRecord() {
+    try {
+      const records = readRecords();
+      const id = currentRecordId || ("LW-" + new Date().getFullYear() + "-" + Math.random().toString(36).slice(2,8).toUpperCase());
+      const record = makeRecord(id);
+      records[id] = record;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+      currentRecordId = id;
+      $("certificateIdLabel").textContent = "Certificate ID: " + id;
+      $("status").textContent = "Record saved in this browser as " + id + ". This is local storage, not an online database.";
+      const target = $("qrcode");
+      target.innerHTML = "Generate QR after saving";
+      return true;
+    } catch (error) {
+      $("status").textContent = error.name === "QuotaExceededError"
+        ? "Browser storage is full. Try a smaller photo or logo."
+        : (error.message || "Could not save the record in this browser.");
+      return false;
+    }
+  }
+  function showVerification(id) {
+    $("creatorToolbar").style.display = "none";
+    $("certificate").style.display = "none";
+    const panel = $("verificationView");
+    panel.style.display = "block";
+    const record = readRecords()[id];
+    panel.replaceChildren();
+    const heading = document.createElement("h1");
+    heading.textContent = "Language Whispers Certificate Verification";
+    panel.appendChild(heading);
+    if (!record) {
+      const msg = document.createElement("p");
+      msg.className = "not-found";
+      msg.textContent = "Certificate record not found in this browser. For cross-device verification, this certificate must be stored in an online database.";
+      panel.appendChild(msg);
+      return;
+    }
+    const status = document.createElement("p"); status.className = "verified"; status.textContent = "Record found in this browser"; panel.appendChild(status);
+    const add = (label, value) => { const p=document.createElement("p"); const strong=document.createElement("strong"); strong.textContent=label+": "; p.append(strong,document.createTextNode(value)); panel.appendChild(p); };
+    add("Certificate ID",record.id); add("Student",record.name); add("Issued on",formatDate(record.date));
+    Object.entries(record.scores).forEach(([level,result]) => add(level,`${result.score} / ${result.total} (${percent(result.score,result.total)})`));
+    const note=document.createElement("p"); note.textContent="This record is stored locally in the browser that created it. It has not been verified against a central online database."; panel.appendChild(note);
+  }
+  ["studentName","certificateDate","a1Score","a2Score","b1Score"].forEach(id => {
+    $(id).addEventListener("input", () => { updateCertificate(); if(currentRecordId) $("status").textContent="Details changed. Save Record again to update the saved record."; });
+  });
+  function loadImage(inputId, targetId, assign) {
+    $(inputId).addEventListener("change", event => {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      if (!file.type.startsWith("image/")) { $("status").textContent="Please choose an image file."; event.target.value=""; return; }
+      if (file.size > 3 * 1024 * 1024) { $("status").textContent="Please choose an image smaller than 3 MB to help browser storage work."; event.target.value=""; return; }
+      const reader = new FileReader();
+      reader.onload = () => {
+        assign(reader.result); $(targetId).src = reader.result;
+        $("status").textContent="Image loaded. Save Record to store it with this certificate.";
+      };
+      reader.onerror = () => { $("status").textContent="Could not read that image. Please try another file."; };
+      reader.readAsDataURL(file);
+    });
+  }
+  loadImage("logoUpload","displayLogo",value => logoData=value);
+  loadImage("photoUpload","displayPhoto",value => photoData=value);
+  $("saveBtn").addEventListener("click",saveRecord);
+  $("generateBtn").addEventListener("click",generateQr);
+  $("printBtn").addEventListener("click",() => window.print());
+
+  updateCertificate();
+  const requestedId = new URLSearchParams(window.location.search).get("certificate");
+  if (requestedId) showVerification(requestedId);
+  else {
+    const oldRecords = readRecords();
+    const existingId = new URLSearchParams(window.location.search).get("id");
+    if (existingId && oldRecords[existingId]) { currentRecordId=existingId; renderRecord(oldRecords[existingId]); generateQr(); }
+  }
+})();
+</script>
 </body>
 </html>
