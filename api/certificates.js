@@ -1,7 +1,5 @@
 
-
 module.exports = async function handler(req, res) {
-
   const supabaseUrl = process.env.SUPABASE_URL;
   const secretKey = process.env.SUPABASE_SECRET_KEY;
   const adminPassword = process.env.CERTIFICATE_ADMIN_PASSWORD;
@@ -12,15 +10,16 @@ module.exports = async function handler(req, res) {
     });
   }
 
-  const baseUrl = supabaseUrl.replace(/\/+$/, "");
+  const baseUrl = supabaseUrl.trim().replace(/\/+$/, "");
   const tableUrl = `${baseUrl}/rest/v1/certificates`;
 
   const headers = {
     apikey: secretKey,
+    Authorization: `Bearer ${secretKey}`,
     "Content-Type": "application/json"
   };
 
-  // Retrieve a certificate for QR verification.
+  // GET: Verify a certificate from its QR code.
   if (req.method === "GET") {
     const id = String(req.query?.id || "");
 
@@ -33,18 +32,24 @@ module.exports = async function handler(req, res) {
     try {
       const response = await fetch(
         `${tableUrl}?id=eq.${encodeURIComponent(id)}&select=id,name,certificate_date,scores,logo,photo,issued_at,status`,
-        { headers, cache: "no-store" }
+        {
+          headers,
+          cache: "no-store"
+        }
       );
 
       if (!response.ok) {
+        const details = await response.text();
+
         return res.status(502).json({
-          error: "Could not verify the certificate."
+          error: "Could not verify the certificate.",
+          details
         });
       }
 
       const rows = await response.json();
 
-      if (!rows.length) {
+      if (!Array.isArray(rows) || rows.length === 0) {
         return res.status(404).json({
           error: "Certificate not found."
         });
@@ -62,14 +67,15 @@ module.exports = async function handler(req, res) {
         issuedAt: row.issued_at,
         status: row.status
       });
-    } catch {
+    } catch (error) {
       return res.status(500).json({
-        error: "Certificate verification failed."
+        error: "Certificate verification failed.",
+        details: error.message
       });
     }
   }
 
-  // Save a certificate. Only the administrator can do this.
+  // POST: Save a certificate. Administrator password required.
   if (req.method === "POST") {
     const { adminPassword: suppliedPassword, record } = req.body || {};
 
@@ -82,7 +88,7 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    if (!record || typeof record !== "object") {
+    if (!record || typeof record !== "object" || Array.isArray(record)) {
       return res.status(400).json({
         error: "Certificate data is missing."
       });
@@ -105,14 +111,20 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) ||
-        Number.isNaN(Date.parse(`${date}T00:00:00Z`))) {
+    if (
+      !/^\d{4}-\d{2}-\d{2}$/.test(date) ||
+      Number.isNaN(Date.parse(`${date}T00:00:00Z`))
+    ) {
       return res.status(400).json({
         error: "Enter a valid certificate date."
       });
     }
 
-    const expectedTotals = { A1: 20, A2: 20, B1: 29 };
+    const expectedTotals = {
+      A1: 20,
+      A2: 20,
+      B1: 29
+    };
 
     for (const [level, total] of Object.entries(expectedTotals)) {
       const item = scores?.[level];
@@ -154,11 +166,11 @@ module.exports = async function handler(req, res) {
       );
 
       if (!response.ok) {
-        const errorDetails = await response.text();
+        const details = await response.text();
 
         return res.status(502).json({
           error: "Supabase could not save the certificate.",
-          details: errorDetails
+          details
         });
       }
 
@@ -172,4 +184,12 @@ module.exports = async function handler(req, res) {
         details: error.message
       });
     }
+  }
 
+  // Reject any unsupported HTTP method.
+  res.setHeader("Allow", "GET, POST");
+
+  return res.status(405).json({
+    error: "Method not allowed."
+  });
+};
