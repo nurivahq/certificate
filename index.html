@@ -67,16 +67,16 @@ button:focus-visible,input:focus-visible{outline:3px solid #3B887077;outline-off
     grid-template-columns: 1fr;
   }
 
-  /* Keep the certificate in its desktop layout */
+  /* Keep the original certificate layout on phones */
   .certificate {
     width: 1100px;
     max-width: none;
     margin: 0;
     padding: 22px;
     border-width: 7px;
-    transform: scale(calc((100vw - 20px) / 1100));
+    transform: scale(calc((100vw - 40px) / 1100));
     transform-origin: top left;
-    margin-bottom: calc((100vw - 20px) * -0.35);
+    margin-bottom: calc((100vw - 40px) * -0.35);
   }
 
   .certificate-inner {
@@ -112,6 +112,24 @@ button:focus-visible,input:focus-visible{outline:3px solid #3B887077;outline-off
 
   .name-line {
     width: 70%;
+  }
+
+  /* When the certificate is displayed after a QR scan */
+  #verificationView {
+    width: 100%;
+    max-width: none;
+    margin: 10px auto;
+    padding: 10px 0;
+    overflow: visible;
+  }
+
+  #verificationView > #certificate {
+    width: 1100px;
+    max-width: none;
+    margin: 0;
+    transform: scale(calc((100vw - 40px) / 1100));
+    transform-origin: top left;
+    margin-bottom: calc((100vw - 40px) * -0.35);
   }
 }
 
@@ -217,6 +235,7 @@ button:focus-visible,input:focus-visible{outline:3px solid #3B887077;outline-off
     margin-top: 12px;
   }
 }
+
 
 </style>
 </head>
@@ -436,10 +455,12 @@ async function saveRecord() {
 
 
 async function showVerification(id) {
-  $("creatorToolbar").style.display = "none";
-  $("certificate").style.display = "none";
+  const toolbar = $("creatorToolbar");
+  if (toolbar) toolbar.style.display = "none";
 
   const panel = $("verificationView");
+  const certificate = $("certificate");
+
   panel.style.display = "block";
   panel.replaceChildren();
 
@@ -447,9 +468,9 @@ async function showVerification(id) {
   heading.textContent = "Language Whispers Certificate Verification";
   panel.appendChild(heading);
 
-  const message = document.createElement("p");
-  message.textContent = "Checking certificate online...";
-  panel.appendChild(message);
+  const status = document.createElement("p");
+  status.textContent = "Checking certificate online...";
+  panel.appendChild(status);
 
   try {
     const response = await fetch(
@@ -465,48 +486,33 @@ async function showVerification(id) {
       );
     }
 
-    panel.replaceChildren();
-    panel.appendChild(heading);
-
-    const status = document.createElement("p");
-    status.className =
-      record.status === "valid" ? "verified" : "not-found";
-    status.textContent =
-      record.status === "valid"
-        ? "Certificate verified online"
-        : "This certificate has been revoked.";
-    panel.appendChild(status);
-
-    const add = (label, value) => {
-      const p = document.createElement("p");
-      const strong = document.createElement("strong");
-      strong.textContent = label + ": ";
-      p.append(
-        strong,
-        document.createTextNode(String(value ?? ""))
-      );
-      panel.appendChild(p);
-    };
-
-    add("Certificate ID", record.id);
-    add("Student", record.name);
-    add("Issued on", formatDate(record.date));
-
-    Object.entries(record.scores || {}).forEach(([level, result]) => {
-      add(
-        level,
-        `${result.score} / ${result.total} (${percent(result.score, result.total)})`
-      );
+    // Restore the saved record into the existing certificate design.
+    renderRecord({
+      id: record.id,
+      name: record.name,
+      date: record.date,
+      scores: record.scores,
+      logo: record.logo || "",
+      photo: record.photo || ""
     });
 
-    if (record.photo) {
-      const photo = document.createElement("img");
-      photo.src = record.photo;
-      photo.alt = "Student photo";
-      photo.style.maxWidth = "160px";
-      photo.style.borderRadius = "10px";
-      panel.appendChild(photo);
-    }
+    // Show the same certificate element used by the desktop creator.
+    certificate.style.display = "block";
+
+    // Keep the creator controls hidden, including if their ID differs.
+    if (toolbar) toolbar.style.display = "none";
+
+    status.className =
+      record.status === "valid" ? "verified" : "not-found";
+
+    status.textContent =
+      record.status === "valid"
+        ? "✓ Certificate verified online"
+        : "This certificate has been revoked.";
+
+    // Put the status above the certificate.
+    panel.appendChild(status);
+    panel.appendChild(certificate);
 
     const note = document.createElement("p");
     note.textContent =
@@ -514,17 +520,20 @@ async function showVerification(id) {
     panel.appendChild(note);
 
   } catch (error) {
+    certificate.style.display = "none";
     panel.replaceChildren();
     panel.appendChild(heading);
 
-    const msg = document.createElement("p");
-    msg.className = "not-found";
-    msg.textContent =
+    const message = document.createElement("p");
+    message.className = "not-found";
+    message.textContent =
       error.message ||
       "Could not verify certificate online. Please try again.";
-    panel.appendChild(msg);
+
+    panel.appendChild(message);
   }
 }
+
 
 
 
