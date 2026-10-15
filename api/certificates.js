@@ -1,25 +1,61 @@
-
+```javascript
 module.exports = async function handler(req, res) {
   const supabaseUrl = process.env.SUPABASE_URL;
   const secretKey = process.env.SUPABASE_SECRET_KEY;
   const adminPassword = process.env.CERTIFICATE_ADMIN_PASSWORD;
 
-  if (!supabaseUrl || !secretKey || !adminPassword) {
+  // Supabase credentials are required for both operations.
+  const missingVariables = [];
+
+  if (!supabaseUrl?.trim()) {
+    missingVariables.push("SUPABASE_URL");
+  }
+
+  if (!secretKey?.trim()) {
+    missingVariables.push("SUPABASE_SECRET_KEY");
+  }
+
+  if (missingVariables.length > 0) {
     return res.status(500).json({
-      error: "Server configuration is incomplete."
+      error: "Supabase server configuration is incomplete.",
+      missing: missingVariables
     });
   }
 
-  const baseUrl = supabaseUrl.trim().replace(/\/+$/, "");
-const tableUrl = `${baseUrl.replace(/\/rest\/v1\/?$/, "")}/rest/v1/certificates`;
+  // Support a Project URL with or without a trailing /rest/v1.
+  const baseUrl = supabaseUrl
+    .trim()
+    .replace(/\/+$/, "")
+    .replace(/\/rest\/v1$/i, "");
+
+  let tableUrl;
+
+  try {
+    const parsedUrl = new URL(baseUrl);
+
+    if (
+      !["https:", "http:"].includes(parsedUrl.protocol) ||
+      parsedUrl.pathname !== "" ||
+      parsedUrl.search ||
+      parsedUrl.hash
+    ) {
+      throw new Error("Invalid Supabase Project URL format.");
+    }
+
+    tableUrl = `${baseUrl}/rest/v1/certificates`;
+  } catch {
+    return res.status(500).json({
+      error: "SUPABASE_URL is invalid. Use the Supabase Project URL."
+    });
+  }
 
   const headers = {
-    apikey: secretKey,
-    Authorization: `Bearer ${secretKey}`,
+    apikey: secretKey.trim(),
+    Authorization: `Bearer ${secretKey.trim()}`,
     "Content-Type": "application/json"
   };
 
-  // GET: Verify a certificate from its QR code.
+  // GET: Verify a certificate using its ID.
   if (req.method === "GET") {
     const id = String(req.query?.id || "");
 
@@ -30,13 +66,19 @@ const tableUrl = `${baseUrl.replace(/\/rest\/v1\/?$/, "")}/rest/v1/certificates`
     }
 
     try {
-      const response = await fetch(
-        `${tableUrl}?id=eq.${encodeURIComponent(id)}&select=id,name,certificate_date,scores,logo,photo,issued_at,status`,
-        {
-          headers,
-          cache: "no-store"
-        }
+      const url = new URL(tableUrl);
+
+      url.searchParams.set("id", `eq.${id}`);
+      url.searchParams.set(
+        "select",
+        "id,name,certificate_date,scores,logo,photo,issued_at,status"
       );
+
+      const response = await fetch(url.toString(), {
+        method: "GET",
+        headers,
+        cache: "no-store"
+      });
 
       if (!response.ok) {
         const details = await response.text();
@@ -75,8 +117,18 @@ const tableUrl = `${baseUrl.replace(/\/rest\/v1\/?$/, "")}/rest/v1/certificates`
     }
   }
 
-  // POST: Save a certificate. Administrator password required.
+  // POST: Save a certificate. Password required only for saving.
   if (req.method === "POST") {
+    if (
+      typeof adminPassword !== "string" ||
+      !adminPassword.trim()
+    ) {
+      return res.status(500).json({
+        error: "Administrator password is not configured.",
+        missing: ["CERTIFICATE_ADMIN_PASSWORD"]
+      });
+    }
+
     const { adminPassword: suppliedPassword, record } = req.body || {};
 
     if (
@@ -111,9 +163,17 @@ const tableUrl = `${baseUrl.replace(/\/rest\/v1\/?$/, "")}/rest/v1/certificates`
       });
     }
 
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return res.status(400).json({
+        error: "Enter a valid certificate date."
+      });
+    }
+
+    const parsedDate = new Date(`${date}T00:00:00Z`);
+
     if (
-      !/^\d{4}-\d{2}-\d{2}$/.test(date) ||
-      Number.isNaN(Date.parse(`${date}T00:00:00Z`))
+      Number.isNaN(parsedDate.getTime()) ||
+      parsedDate.toISOString().slice(0, 10) !== date
     ) {
       return res.status(400).json({
         error: "Enter a valid certificate date."
@@ -153,17 +213,17 @@ const tableUrl = `${baseUrl.replace(/\/rest\/v1\/?$/, "")}/rest/v1/certificates`
     };
 
     try {
-      const response = await fetch(
-        `${tableUrl}?on_conflict=id`,
-        {
-          method: "POST",
-          headers: {
-            ...headers,
-            Prefer: "resolution=merge-duplicates,return=minimal"
-          },
-          body: JSON.stringify(payload)
-        }
-      );
+      const url = new URL(tableUrl);
+      url.searchParams.set("on_conflict", "id");
+
+      const response = await fetch(url.toString(), {
+        method: "POST",
+        headers: {
+          ...headers,
+          Prefer: "resolution=merge-duplicates,return=minimal"
+        },
+        body: JSON.stringify(payload)
+      });
 
       if (!response.ok) {
         const details = await response.text();
@@ -186,10 +246,10 @@ const tableUrl = `${baseUrl.replace(/\/rest\/v1\/?$/, "")}/rest/v1/certificates`
     }
   }
 
-  // Reject any unsupported HTTP method.
   res.setHeader("Allow", "GET, POST");
 
   return res.status(405).json({
     error: "Method not allowed."
   });
 };
+``
