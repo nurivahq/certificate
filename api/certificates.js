@@ -22,25 +22,30 @@ module.exports = async function handler(req, res) {
     });
   }
 
-  // Support a Project URL with or without a trailing /rest/v1.
-  const baseUrl = supabaseUrl
-    .trim()
-    .replace(/\/+$/, "")
-    .replace(/\/rest\/v1$/i, "");
-
+ 
+  // Normalize the Supabase Project URL.
   let tableUrl;
 
   try {
-    const parsedUrl = new URL(baseUrl);
+    const parsedUrl = new URL(supabaseUrl.trim());
 
     if (
-      !["https:", "http:"].includes(parsedUrl.protocol) ||
-      parsedUrl.pathname !== "" ||
+      parsedUrl.protocol !== "https:" ||
+      !parsedUrl.hostname.endsWith(".supabase.co") ||
       parsedUrl.search ||
       parsedUrl.hash
     ) {
-      throw new Error("Invalid Supabase Project URL format.");
+      throw new Error("Invalid Supabase Project URL.");
     }
+
+    const baseUrl = parsedUrl.origin;
+    tableUrl = baseUrl + "/rest/v1/certificates";
+  } catch {
+    return res.status(500).json({
+      error: "SUPABASE_URL is invalid. Use the Supabase Project URL ending in .supabase.co."
+    });
+  }
+
 
     tableUrl = baseUrl + "/rest/v1/certificates";
   } catch {
