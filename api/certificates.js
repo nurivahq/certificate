@@ -23,11 +23,11 @@ module.exports = async function handler(req, res) {
   }
 
  
-  // Normalize the Supabase Project URL.
+ 
   let tableUrl;
 
   try {
-    const parsedUrl = new URL(supabaseUrl.trim());
+    const parsedUrl = new URL(String(supabaseUrl || "").trim());
 
     if (
       parsedUrl.protocol !== "https:" ||
@@ -38,13 +38,13 @@ module.exports = async function handler(req, res) {
       throw new Error("Invalid Supabase Project URL.");
     }
 
-    const baseUrl = parsedUrl.origin;
-    tableUrl = baseUrl + "/rest/v1/certificates";
-  } catch {
+    tableUrl = parsedUrl.origin + "/rest/v1/certificates";
+  } catch (error) {
     return res.status(500).json({
       error: "SUPABASE_URL is invalid. Use the Supabase Project URL ending in .supabase.co."
     });
   }
+
 
 
     tableUrl = baseUrl + "/rest/v1/certificates";
