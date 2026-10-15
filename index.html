@@ -274,9 +274,15 @@ async function saveRecord() {
 
     const result = await response.json();
 
-    if (!response.ok) {
-      throw new Error(result.error || "Could not save certificate online.");
-    }
+  if (!response.ok) {
+  const details = result.details
+    ? "\nDetails: " + result.details
+    : "";
+
+  throw new Error(
+    (result.error || "Could not save certificate online.") + details
+  );
+}
 
     currentRecordId = id;
 
