@@ -470,7 +470,7 @@ async function showVerification(id) {
 
   const status = document.createElement("p");
   status.textContent = "Checking certificate online...";
-  panel.appendChild(status);
+
 
   try {
     const response = await fetch(
@@ -512,17 +512,27 @@ async function showVerification(id) {
 
     // Put the status above the certificate.
     panel.appendChild(status);
-    panel.appendChild(certificate);
+   panel.appendChild(certificate);
 
-    const note = document.createElement("p");
-    note.textContent =
-      "This certificate was checked against the Language Whispers online database.";
-    panel.appendChild(note);
+// Restore the QR code for this certificate.
+const qrTarget = $("qrcode");
+qrTarget.innerHTML = "";
+
+if (typeof QRCode !== "undefined") {
+  new QRCode(qrTarget, {
+    text: makeVerificationUrl(record.id),
+    width: 100,
+    height: 100,
+    correctLevel: QRCode.CorrectLevel.M
+  });
+}
+
+  
 
   } catch (error) {
     certificate.style.display = "none";
     panel.replaceChildren();
-    panel.appendChild(heading);
+
 
     const message = document.createElement("p");
     message.className = "not-found";
