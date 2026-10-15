@@ -2,66 +2,51 @@
 module.exports = async function handler(req, res) {
   const supabaseUrl = process.env.SUPABASE_URL;
   const secretKey = process.env.SUPABASE_SECRET_KEY;
-  const adminPassword = process.env.CERTIFICATE_ADMIN_PASSWORD;
 
-  // Supabase credentials are required for both operations.
-  const missingVariables = [];
-
-  if (!supabaseUrl?.trim()) {
-    missingVariables.push("SUPABASE_URL");
-  }
-
-  if (!secretKey?.trim()) {
-    missingVariables.push("SUPABASE_SECRET_KEY");
-  }
-
-  if (missingVariables.length > 0) {
+  if (!supabaseUrl || !supabaseUrl.trim() ||
+      !secretKey || !secretKey.trim()) {
     return res.status(500).json({
       error: "Supabase server configuration is incomplete.",
-      missing: missingVariables
+      missing: [
+        ...(!supabaseUrl || !supabaseUrl.trim()
+          ? ["SUPABASE_URL"] : []),
+        ...(!secretKey || !secretKey.trim()
+          ? ["SUPABASE_SECRET_KEY"] : [])
+      ]
     });
   }
 
- 
- 
   let tableUrl;
 
   try {
-    const parsedUrl = new URL(String(supabaseUrl || "").trim());
+    const parsedUrl = new URL(supabaseUrl.trim());
 
     if (
       parsedUrl.protocol !== "https:" ||
       !parsedUrl.hostname.endsWith(".supabase.co") ||
       parsedUrl.search ||
-      parsedUrl.hash
+      parsedUrl.hash ||
+      (parsedUrl.pathname !== "" &&
+       parsedUrl.pathname !== "/" &&
+       parsedUrl.pathname.replace(/\/+$/, "") !== "/rest/v1")
     ) {
-      throw new Error("Invalid Supabase Project URL.");
+      throw new Error("Invalid Supabase URL");
     }
 
     tableUrl = parsedUrl.origin + "/rest/v1/certificates";
   } catch (error) {
     return res.status(500).json({
-      error: "SUPABASE_URL is invalid. Use the Supabase Project URL ending in .supabase.co."
+      error: "SUPABASE_URL is invalid. Use your Supabase Project URL."
     });
   }
-
-
-
-    tableUrl = baseUrl + "/rest/v1/certificates";
-  } catch {
-    return res.status(500).json({
-      error: "SUPABASE_URL is invalid. Use the Supabase Project URL."
-    });
-  }
-
 
   const headers = {
     apikey: secretKey.trim(),
-    Authorization: `Bearer ${secretKey.trim()}`,
+    Authorization: "Bearer " + secretKey.trim(),
     "Content-Type": "application/json"
   };
 
-  // GET: Verify a certificate using its ID.
+  // GET: Verify a certificate from its ID.
   if (req.method === "GET") {
     const id = String(req.query?.id || "");
 
@@ -73,8 +58,7 @@ module.exports = async function handler(req, res) {
 
     try {
       const url = new URL(tableUrl);
-
-      url.searchParams.set("id", `eq.${id}`);
+      url.searchParams.set("id", "eq." + id);
       url.searchParams.set(
         "select",
         "id,name,certificate_date,scores,logo,photo,issued_at,status"
@@ -87,11 +71,9 @@ module.exports = async function handler(req, res) {
       });
 
       if (!response.ok) {
-        const details = await response.text();
-
         return res.status(502).json({
           error: "Could not verify the certificate.",
-          details
+          details: await response.text()
         });
       }
 
@@ -123,30 +105,13 @@ module.exports = async function handler(req, res) {
     }
   }
 
-  // POST: Save a certificate. Password required only for saving.
+  // POST: Save a certificate without an administrator password.
   if (req.method === "POST") {
-    if (
-      typeof adminPassword !== "string" ||
-      !adminPassword.trim()
-    ) {
-      return res.status(500).json({
-        error: "Administrator password is not configured.",
-        missing: ["CERTIFICATE_ADMIN_PASSWORD"]
-      });
-    }
+    const body = req.body || {};
+    const record = body.record;
 
-    const { adminPassword: suppliedPassword, record } = req.body || {};
-
-    if (
-      typeof suppliedPassword !== "string" ||
-      suppliedPassword !== adminPassword
-    ) {
-      return res.status(401).json({
-        error: "Incorrect administrator password."
-      });
-    }
-
-    if (!record || typeof record !== "object" || Array.isArray(record)) {
+    if (!record || typeof record !== "object" ||
+        Array.isArray(record)) {
       return res.status(400).json({
         error: "Certificate data is missing."
       });
@@ -175,7 +140,7 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    const parsedDate = new Date(`${date}T00:00:00Z`);
+    const parsedDate = new Date(date + "T00:00:00Z");
 
     if (
       Number.isNaN(parsedDate.getTime()) ||
@@ -186,14 +151,10 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    const expectedTotals = {
-      A1: 20,
-      A2: 20,
-      B1: 29
-    };
+    const expectedTotals = { A1: 20, A2: 20, B1: 29 };
 
     for (const [level, total] of Object.entries(expectedTotals)) {
-      const item = scores?.[level];
+      const item = scores && scores[level];
 
       if (
         !item ||
@@ -203,7 +164,7 @@ module.exports = async function handler(req, res) {
         Number(item.score) > total
       ) {
         return res.status(400).json({
-          error: `Invalid ${level} score.`
+          error: "Invalid " + level + " score."
         });
       }
     }
@@ -232,11 +193,9 @@ module.exports = async function handler(req, res) {
       });
 
       if (!response.ok) {
-        const details = await response.text();
-
         return res.status(502).json({
           error: "Supabase could not save the certificate.",
-          details
+          details: await response.text()
         });
       }
 
@@ -258,4 +217,3 @@ module.exports = async function handler(req, res) {
     error: "Method not allowed."
   });
 };
-``
