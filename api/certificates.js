@@ -1,4 +1,4 @@
-```javascript
+
 module.exports = async function handler(req, res) {
   const supabaseUrl = process.env.SUPABASE_URL;
   const secretKey = process.env.SUPABASE_SECRET_KEY;
@@ -42,12 +42,13 @@ module.exports = async function handler(req, res) {
       throw new Error("Invalid Supabase Project URL format.");
     }
 
-    tableUrl = `${baseUrl}/rest/v1/certificates`;
+    tableUrl = baseUrl + "/rest/v1/certificates";
   } catch {
     return res.status(500).json({
       error: "SUPABASE_URL is invalid. Use the Supabase Project URL."
     });
   }
+
 
   const headers = {
     apikey: secretKey.trim(),
